@@ -1,0 +1,1138 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <meta name="theme-color" content="#091a1b">
+  <title>无职转生：六面世界</title>
+  <style>
+    :root {
+      --ink: #effbf0;
+      --muted: #a8beb6;
+      --gold: #f2c66d;
+      --leaf: #80c98f;
+      --mana: #65c9ed;
+      --danger: #e66e68;
+      --panel: rgba(8, 21, 22, .88);
+      --line: rgba(223, 244, 222, .18);
+    }
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #071415; color: var(--ink); font-family: "Noto Sans SC", "Yu Gothic UI", "Microsoft YaHei UI", sans-serif; letter-spacing: 0; }
+    button, input { font: inherit; }
+    button { color: inherit; }
+    button:focus-visible, input:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+    #game { position: fixed; inset: 0; background: #071415; }
+    #game canvas { display: block; image-rendering: auto; }
+
+    .screen { position: fixed; inset: 0; z-index: 30; transition: opacity .45s ease, visibility .45s; }
+    .screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+    #title-screen { overflow: hidden; background: #071415; }
+    #title-screen::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(2, 12, 13, .88) 0%, rgba(2, 12, 13, .4) 36%, transparent 66%), linear-gradient(0deg, rgba(1, 9, 10, .78) 0%, transparent 48%); pointer-events: none; }
+    .title-art { width: 100%; height: 100%; object-fit: cover; object-position: center; transform: scale(1.015); animation: breathe 12s ease-in-out infinite alternate; }
+    @keyframes breathe { to { transform: scale(1.045); } }
+    .title-copy { position: absolute; z-index: 2; left: clamp(28px, 6vw, 110px); bottom: clamp(40px, 10vh, 104px); width: min(620px, 74vw); text-shadow: 0 3px 20px #000; }
+    .world-mark { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; color: #dff4e3; font: 700 clamp(12px, 1.1vw, 15px)/1.2 Georgia, serif; letter-spacing: .16em; }
+    .world-mark::before { content: ""; width: 38px; height: 1px; background: var(--gold); box-shadow: 0 0 10px var(--gold); }
+    h1 { margin: 0; font-family: Georgia, "Yu Mincho", "Noto Serif SC", serif; font-size: clamp(52px, 7.6vw, 116px); line-height: .92; font-weight: 500; letter-spacing: 0; }
+    .title-sub { margin: 18px 0 30px; font-size: clamp(15px, 1.35vw, 21px); color: #d5e9df; line-height: 1.65; }
+    .primary { min-width: 190px; height: 54px; border: 1px solid rgba(255, 226, 160, .65); background: linear-gradient(180deg, #e9c16d, #b78331); color: #1d160a; padding: 0 28px; font-weight: 900; cursor: pointer; box-shadow: 0 10px 30px rgba(0,0,0,.35), inset 0 1px rgba(255,255,255,.65); transition: transform .18s, filter .18s; }
+    .primary:hover { transform: translateY(-2px); filter: brightness(1.08); }
+    .title-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+    .secondary { min-width: 156px; height: 54px; border: 1px solid rgba(255,255,255,.34); background: rgba(5,17,18,.64); color: #eef8f0; padding: 0 24px; font-weight: 800; cursor: pointer; backdrop-filter: blur(10px); }
+    .secondary:hover { border-color: var(--gold); color: #fff0c2; }
+    .top-controls { position: absolute; z-index: 3; top: 24px; right: 28px; display: flex; gap: 8px; }
+    .glass-button { height: 38px; min-width: 46px; padding: 0 14px; border: 1px solid rgba(255,255,255,.22); background: rgba(5,16,18,.62); backdrop-filter: blur(12px); cursor: pointer; color: #e7f5ec; }
+    .glass-button.active { border-color: var(--gold); color: var(--gold); }
+
+    #creator { display: grid; place-items: center; background: rgba(4, 13, 14, .72); backdrop-filter: blur(16px); }
+    .creator-layout { width: min(1040px, 92vw); min-height: min(680px, 84vh); display: grid; grid-template-columns: 44% 56%; background: rgba(6, 20, 20, .95); border: 1px solid var(--line); box-shadow: 0 28px 90px rgba(0,0,0,.6); }
+    .creator-visual { position: relative; overflow: hidden; background: url("assets/village-map.png") center/cover; }
+    .creator-visual::after { content: ""; position: absolute; inset: 0; background: linear-gradient(0deg, rgba(4,15,15,.9), rgba(4,15,15,.08) 70%); }
+    .sprite-preview { position: absolute; z-index: 1; width: 246px; height: 224px; left: 50%; bottom: 86px; transform: translateX(-50%); background: url("assets/player-sheet.png") 0 0 / 400% 400% no-repeat; filter: drop-shadow(0 20px 12px rgba(0,0,0,.55)); image-rendering: pixelated; }
+    .creator-visual-label { position: absolute; z-index: 2; left: 28px; bottom: 26px; font-family: Georgia, serif; font-size: 18px; color: var(--gold); }
+    .creator-form { padding: clamp(30px, 5vw, 72px); display: flex; flex-direction: column; justify-content: center; }
+    .eyebrow { color: var(--gold); font-size: 12px; font-weight: 800; letter-spacing: .14em; }
+    .creator-form h2 { margin: 9px 0 32px; font: 500 clamp(30px, 4vw, 48px)/1.1 Georgia, "Noto Serif SC", serif; }
+    .field { margin-bottom: 24px; }
+    .field > label { display: block; margin-bottom: 9px; font-size: 13px; color: var(--muted); }
+    .field input { width: 100%; height: 48px; border: 0; border-bottom: 1px solid var(--line); background: rgba(255,255,255,.04); color: white; padding: 0 14px; }
+    .segments { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .segment { min-height: 46px; padding: 8px; border: 1px solid var(--line); background: rgba(255,255,255,.035); cursor: pointer; color: var(--muted); }
+    .segment.active { border-color: var(--gold); background: rgba(242,198,109,.12); color: #fff1c8; }
+    .creator-actions { display: flex; align-items: center; gap: 14px; margin-top: 10px; }
+    .back { border: 0; background: transparent; color: var(--muted); cursor: pointer; padding: 12px; }
+
+    #hud { position: fixed; inset: 0; z-index: 12; pointer-events: none; opacity: 0; transition: opacity .35s; }
+    #hud.visible { opacity: 1; }
+    .hud-top { position: absolute; top: 18px; left: 20px; right: 20px; display: flex; justify-content: space-between; align-items: flex-start; }
+    .identity { display: flex; gap: 10px; align-items: center; padding: 8px 12px 8px 9px; background: linear-gradient(90deg, rgba(5,17,18,.82), rgba(5,17,18,.22)); border-left: 2px solid var(--gold); text-shadow: 0 2px 8px #000; }
+    .identity-seal { width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid rgba(242,198,109,.55); color: var(--gold); font: 700 16px Georgia, serif; transform: rotate(45deg); }
+    .identity-seal span { transform: rotate(-45deg); }
+    .identity strong { display: block; font-size: 15px; }
+    .identity small { color: var(--muted); font-size: 11px; }
+    .clock { text-align: center; padding: 8px 18px; text-shadow: 0 2px 10px #000; }
+    .clock strong { display: block; font: 500 24px Georgia, serif; }
+    .clock small { color: #e3efe7; }
+    .hud-actions { display: flex; gap: 7px; pointer-events: auto; }
+    .icon-btn { width: 42px; height: 42px; border: 1px solid rgba(255,255,255,.22); background: rgba(5,17,18,.76); color: #eaf8ee; cursor: pointer; display: grid; place-items: center; font-size: 16px; }
+    .icon-btn:hover { border-color: var(--gold); color: var(--gold); }
+    .bars { position: absolute; left: 22px; bottom: 24px; width: 248px; padding: 12px 14px; background: linear-gradient(90deg, rgba(4,15,16,.86), transparent); }
+    .bar-row { display: grid; grid-template-columns: 46px 1fr 34px; align-items: center; gap: 8px; margin: 6px 0; font-size: 10px; color: #dcebe1; }
+    .track { height: 5px; background: rgba(255,255,255,.14); overflow: hidden; }
+    .fill { height: 100%; transition: width .25s; }
+    .hp { background: var(--danger); box-shadow: 0 0 8px var(--danger); }
+    .mp { background: var(--mana); box-shadow: 0 0 8px var(--mana); }
+    .sp { background: var(--leaf); box-shadow: 0 0 8px var(--leaf); }
+    .area-name { position: absolute; left: 50%; top: 20%; transform: translate(-50%, -50%); text-align: center; opacity: 0; text-shadow: 0 3px 16px #000; }
+    .area-name.show { animation: area 3.2s ease; }
+    .area-name strong { display: block; font: 500 clamp(24px, 3vw, 38px) Georgia, "Noto Serif SC", serif; }
+    .area-name small { color: var(--gold); }
+    @keyframes area { 0% { opacity: 0; transform: translate(-50%, -35%); } 18%, 72% { opacity: 1; transform: translate(-50%, -50%); } 100% { opacity: 0; } }
+    .interaction { position: absolute; left: 50%; bottom: 15%; transform: translateX(-50%); display: flex; align-items: center; gap: 9px; padding: 8px 13px; background: rgba(4,15,16,.84); border: 1px solid rgba(255,255,255,.2); opacity: 0; transition: opacity .15s; text-shadow: 0 1px 5px #000; }
+    .interaction.show { opacity: 1; }
+    .key { width: 25px; height: 25px; display: grid; place-items: center; border: 1px solid rgba(255,255,255,.45); background: rgba(255,255,255,.1); font: 800 12px Georgia, serif; }
+    #minimap { position: absolute; right: 22px; bottom: 23px; width: 158px; height: 92px; overflow: hidden; border: 1px solid rgba(255,255,255,.27); box-shadow: 0 8px 24px rgba(0,0,0,.35); background: #17322c center/cover; opacity: .88; }
+    #minimap::after { content: ""; position: absolute; inset: 0; box-shadow: inset 0 0 24px rgba(0,0,0,.5); }
+    #map-dot { position: absolute; width: 8px; height: 8px; margin: -4px; border-radius: 50%; background: #fff5b8; box-shadow: 0 0 0 3px rgba(242,198,109,.35), 0 0 10px #fff; z-index: 2; }
+    .quest-toast { position: absolute; right: 22px; top: 92px; width: min(310px, 31vw); padding: 14px 18px; background: rgba(5,18,19,.88); border-right: 2px solid var(--gold); transform: translateX(calc(100% + 30px)); transition: transform .4s cubic-bezier(.2,.8,.2,1); }
+    .quest-toast.show { transform: translateX(0); }
+    .quest-toast small { color: var(--gold); font-weight: 800; }
+    .quest-toast strong { display: block; margin-top: 4px; font-size: 14px; }
+    .objective { position: absolute; right: 22px; top: 78px; width: min(285px, 34vw); padding: 10px 13px; background: linear-gradient(90deg, rgba(5,18,19,.86), rgba(5,18,19,.56)); border-left: 2px solid var(--gold); text-shadow: 0 2px 8px #000; }
+    .objective small { display: block; color: var(--gold); font-size: 10px; font-weight: 900; letter-spacing: .1em; }
+    .objective-row { display: grid; grid-template-columns: 28px 1fr; align-items: center; gap: 9px; margin-top: 5px; }
+    #objective-arrow { display: grid; place-items: center; width: 26px; height: 26px; color: #fff1b9; font-size: 18px; transition: transform .15s linear; }
+    #objective-text { font-size: 12px; line-height: 1.45; color: #e5f1e8; }
+
+    #dialogue { position: fixed; z-index: 22; left: 50%; bottom: 26px; width: min(920px, calc(100vw - 36px)); min-height: 188px; transform: translate(-50%, 28px); opacity: 0; visibility: hidden; pointer-events: none; display: grid; grid-template-columns: 166px 1fr; background: rgba(5,17,18,.96); border: 1px solid rgba(222,244,224,.24); box-shadow: 0 22px 70px rgba(0,0,0,.58); transition: .24s ease; }
+    #dialogue.open { transform: translate(-50%, 0); opacity: 1; visibility: visible; pointer-events: auto; }
+    .portrait { min-height: 188px; background-image: url("assets/npc-portraits.png"); background-size: 200% 200%; background-repeat: no-repeat; background-color: #183028; image-rendering: auto; }
+    .portrait.roxy { background-position: 100% 0; }
+    .portrait.sylphy { background-position: 0 100%; }
+    .portrait.ghislaine { background-position: 100% 100%; }
+    .dialogue-copy { padding: 19px 24px 18px; }
+    .speaker { color: var(--gold); font: 700 17px Georgia, "Noto Serif SC", serif; }
+    .dialogue-copy p { min-height: 46px; margin: 9px 0 14px; color: #e3efe7; font-size: 14px; line-height: 1.75; }
+    .choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .choice { min-height: 38px; border: 1px solid var(--line); background: rgba(255,255,255,.04); color: #d8e9de; text-align: left; padding: 8px 12px; cursor: pointer; }
+    .choice:hover { border-color: var(--gold); color: #fff2c8; background: rgba(242,198,109,.09); }
+    .continue { float: right; border: 0; background: transparent; color: var(--gold); cursor: pointer; padding: 8px 0 2px 18px; }
+
+    #journal { position: fixed; z-index: 25; top: 0; right: 0; width: min(430px, 92vw); height: 100%; padding: 78px 34px 32px; background: rgba(5,17,18,.97); border-left: 1px solid var(--line); box-shadow: -30px 0 70px rgba(0,0,0,.4); transform: translateX(102%); transition: transform .3s ease; }
+    #journal.open { transform: translateX(0); }
+    #journal h2 { margin: 0 0 28px; font: 500 32px Georgia, "Noto Serif SC", serif; }
+    .close-journal { position: absolute; right: 24px; top: 24px; }
+    .quest { padding: 16px 0; border-top: 1px solid var(--line); }
+    .quest small { color: var(--gold); }
+    .quest strong { display: block; margin: 6px 0; }
+    .quest p { color: var(--muted); font-size: 13px; line-height: 1.6; margin: 0; }
+
+    #pause-menu { position: fixed; inset: 0; z-index: 45; display: grid; place-items: center; background: rgba(2,10,11,.72); backdrop-filter: blur(12px); opacity: 0; visibility: hidden; transition: opacity .2s, visibility .2s; }
+    #pause-menu.open { opacity: 1; visibility: visible; }
+    .pause-panel { width: min(470px, calc(100vw - 32px)); padding: 34px; background: rgba(7,22,22,.98); border: 1px solid var(--line); box-shadow: 0 28px 90px rgba(0,0,0,.65); }
+    .pause-panel h2 { margin: 8px 0 26px; font: 500 34px Georgia, "Noto Serif SC", serif; }
+    .setting { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 18px; min-height: 48px; border-top: 1px solid var(--line); color: #dce9e0; font-size: 13px; }
+    .setting input[type="range"] { width: 150px; accent-color: var(--gold); }
+    .toggle { width: 48px; height: 25px; border: 1px solid var(--line); background: #253132; padding: 3px; cursor: pointer; }
+    .toggle::after { content: ""; display: block; width: 17px; height: 17px; background: #80908a; transition: transform .18s, background .18s; }
+    .toggle.on::after { transform: translateX(23px); background: var(--gold); }
+    .pause-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 25px; }
+    .pause-actions button { min-height: 46px; border: 1px solid var(--line); background: rgba(255,255,255,.04); cursor: pointer; }
+    .pause-actions button:first-child { border-color: rgba(242,198,109,.65); color: var(--gold); }
+    #hit-flash { position: fixed; inset: 0; z-index: 18; pointer-events: none; opacity: 0; box-shadow: inset 0 0 120px 28px rgba(220,45,38,.75); }
+    #hit-flash.show { animation: hitFlash .36s ease-out; }
+    @keyframes hitFlash { 0% { opacity: .85; } 100% { opacity: 0; } }
+
+    #fade { position: fixed; inset: 0; z-index: 50; background: #061315; opacity: 0; visibility: hidden; transition: opacity .35s; pointer-events: none; }
+    #fade.on { opacity: 1; visibility: visible; }
+    .loading { position: fixed; z-index: 60; left: 50%; bottom: 38px; transform: translateX(-50%); color: #dcece2; font-size: 12px; opacity: 0; transition: opacity .25s; }
+    .loading.show { opacity: 1; }
+
+    @media (max-width: 720px) {
+      #creator { display: block; overflow-y: auto; padding: 22px 16px; }
+      #creator.hidden { display: grid; }
+      .creator-layout { grid-template-columns: 1fr; width: 100%; min-height: 100%; margin: 0 auto; }
+      .creator-visual { min-height: 230px; }
+      .sprite-preview { width: 164px; height: 149px; bottom: 42px; }
+      .creator-form { padding: 28px; }
+      .creator-form h2 { margin-bottom: 20px; }
+      #dialogue { grid-template-columns: 112px 1fr; }
+      .portrait { min-height: 172px; }
+      .choices { grid-template-columns: 1fr; }
+      #minimap { width: 130px; height: 78px; }
+      .bars { width: 210px; }
+      .clock { display: none; }
+      .quest-toast { width: 58vw; }
+      .objective { top: 72px; right: 14px; width: 58vw; }
+    }
+  </style>
+</head>
+<body>
+  <div id="game" aria-label="六面世界游戏画面"></div>
+
+  <section id="title-screen" class="screen">
+    <img class="title-art" src="assets/title.webp" alt="无职转生主要角色与六面世界">
+    <div class="top-controls" aria-label="语言选择">
+      <button class="glass-button lang active" data-lang="zh">中文</button>
+      <button class="glass-button lang" data-lang="ja">日本語</button>
+    </div>
+    <div class="title-copy">
+      <div class="world-mark" data-t="worldMark">SIX-FACED WORLD</div>
+      <h1 data-t="title">无职转生</h1>
+      <p class="title-sub" data-t="subtitle">在剑与魔法的世界里，重新活过一次。你的脚步、选择与羁绊，将写成只属于你的故事。</p>
+      <div class="title-actions">
+        <button id="new-game" class="primary" data-t="newGame">开始新人生</button>
+        <button id="continue-game" class="secondary" data-t="continueGame" hidden>继续旅程</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="creator" class="screen hidden" aria-label="角色创建">
+    <div class="creator-layout">
+      <div class="creator-visual">
+        <div class="sprite-preview"></div>
+        <div class="creator-visual-label" data-t="origin">阿斯拉王国 · 菲托亚领</div>
+      </div>
+      <div class="creator-form">
+        <div class="eyebrow" data-t="chapter">PROLOGUE · 新的生命</div>
+        <h2 data-t="who">你将如何被这个世界记住？</h2>
+        <div class="field">
+          <label for="hero-name" data-t="name">名字</label>
+          <input id="hero-name" maxlength="12" value="鲁迪" autocomplete="off">
+        </div>
+        <div class="field">
+          <label data-t="aptitude">魔力资质</label>
+          <div class="segments" id="aptitude">
+            <button class="segment active" data-value="water" data-t="water">水圣级</button>
+            <button class="segment" data-value="earth" data-t="earth">土魔术</button>
+            <button class="segment" data-value="sword" data-t="sword">剑神流</button>
+          </div>
+        </div>
+        <div class="field">
+          <label data-t="nature">处世方式</label>
+          <div class="segments" id="nature">
+            <button class="segment active" data-value="kind" data-t="kind">温柔</button>
+            <button class="segment" data-value="bold" data-t="bold">果断</button>
+            <button class="segment" data-value="curious" data-t="curious">好奇</button>
+          </div>
+        </div>
+        <div class="creator-actions">
+          <button id="enter-world" class="primary" data-t="enter">踏入六面世界</button>
+          <button id="creator-back" class="back" data-t="back">返回</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div id="hud">
+    <div class="hud-top">
+      <div class="identity">
+        <div class="identity-seal"><span id="seal">鲁</span></div>
+        <div><strong id="hud-name">鲁迪</strong><small id="hud-rank">初级冒险者 · 水魔术士</small></div>
+      </div>
+      <div class="clock"><strong id="clock">08:10</strong><small id="day">甲龙历 407年 · 春 · 3日</small></div>
+      <div class="hud-actions">
+        <button id="journal-button" class="icon-btn" title="任务记录" aria-label="任务记录">◆</button>
+        <button id="sound-button" class="icon-btn" title="声音" aria-label="声音">♪</button>
+        <button id="lang-button" class="icon-btn" title="中文 / 日本語" aria-label="切换语言">文</button>
+        <button id="pause-button" class="icon-btn" title="设置" aria-label="设置">Ⅱ</button>
+      </div>
+    </div>
+    <div class="bars">
+      <div class="bar-row"><span>HP</span><div class="track"><div id="hp" class="fill hp" style="width:100%"></div></div><b id="hpv">100</b></div>
+      <div class="bar-row"><span>MP</span><div class="track"><div id="mp" class="fill mp" style="width:100%"></div></div><b id="mpv">100</b></div>
+      <div class="bar-row"><span>ST</span><div class="track"><div id="sp" class="fill sp" style="width:100%"></div></div><b id="spv">100</b></div>
+    </div>
+    <div id="area-name" class="area-name"><strong></strong><small></small></div>
+    <div id="interaction" class="interaction"><span class="key">E</span><span></span></div>
+    <div id="minimap"><div id="map-dot"></div></div>
+    <div id="quest-toast" class="quest-toast"><small id="quest-label">任务更新</small><strong></strong></div>
+    <div class="objective"><small data-t="mainQuest">MAIN QUEST · 主线</small><div class="objective-row"><span id="objective-arrow">◆</span><span id="objective-text"></span></div></div>
+  </div>
+
+  <div id="dialogue" role="dialog" aria-modal="true" aria-live="polite">
+    <div id="portrait" class="portrait"></div>
+    <div class="dialogue-copy">
+      <div id="speaker" class="speaker"></div>
+      <p id="dialogue-text"></p>
+      <div id="choices" class="choices"></div>
+      <button id="continue" class="continue" hidden data-t="continue">继续</button>
+    </div>
+  </div>
+
+  <aside id="journal">
+    <button id="journal-close" class="icon-btn close-journal" aria-label="关闭">×</button>
+    <div class="eyebrow" data-t="adventureLog">ADVENTURE LOG</div>
+    <h2 data-t="journal">旅途记录</h2>
+    <div id="quest-list"></div>
+  </aside>
+  <section id="pause-menu" aria-label="设置菜单">
+    <div class="pause-panel">
+      <div class="eyebrow" data-t="system">SYSTEM</div>
+      <h2 data-t="pause">暂停与设置</h2>
+      <div class="setting"><span data-t="sfxVolume">效果音量</span><input id="sfx-volume" type="range" min="0" max="100" value="70"></div>
+      <div class="setting"><span data-t="cameraShake">镜头震动</span><button id="shake-toggle" class="toggle on" aria-label="镜头震动"></button></div>
+      <div class="setting"><span data-t="effectsQuality">技能粒子</span><button id="effects-toggle" class="toggle on" aria-label="技能粒子"></button></div>
+      <div class="pause-actions">
+        <button id="resume-button" data-t="resume">返回游戏</button>
+        <button id="title-button" data-t="returnTitle">返回标题</button>
+      </div>
+    </div>
+  </section>
+  <div id="hit-flash"></div>
+  <div id="fade"></div>
+  <div id="loading" class="loading" data-t="loading">世界正在展开…</div>
+
+  <script src="assets/phaser.min.js"></script>
+  <script>
+  (() => {
+    'use strict';
+
+    const $ = (s) => document.querySelector(s);
+    const $$ = (s) => [...document.querySelectorAll(s)];
+    const I18N = {
+      zh: {
+        worldMark: 'SIX-FACED WORLD · 六面世界', title: '无职转生',
+        subtitle: '在剑与魔法的世界里，重新活过一次。你的脚步、选择与羁绊，将写成只属于你的故事。',
+        newGame: '开始新人生', continueGame: '继续旅程', origin: '阿斯拉王国 · 菲托亚领', chapter: 'PROLOGUE · 新的生命',
+        who: '你将如何被这个世界记住？', name: '名字', aptitude: '魔力资质', water: '水圣级', earth: '土魔术', sword: '剑神流',
+        nature: '处世方式', kind: '温柔', bold: '果断', curious: '好奇', enter: '踏入六面世界', back: '返回',
+        continue: '继续', adventureLog: 'ADVENTURE LOG', journal: '旅途记录', loading: '世界正在展开…', questUpdate: '任务更新',
+        village: '布埃纳村', villageSub: '阿斯拉王国 · 菲托亚领', forest: '静谧之森', forestSub: '菲托亚领 · 东部遗迹',
+        talk: '交谈', inspect: '调查', travel: '前往静谧之森', returnVillage: '返回布埃纳村',
+        paul: '保罗', roxy: '洛琪希', sylphy: '希露菲', ghislaine: '基列奴', crystal: '古代魔力结晶',
+        rankWater: '初级冒险者 · 水魔术士', rankEarth: '初级冒险者 · 土魔术士', rankSword: '初级冒险者 · 剑士', date: '甲龙历 407年 · 春 · 3日',
+        noQuest: '村庄的一天', noQuestDesc: '自由探索布埃纳村，与熟悉的人交谈。',
+        forestQuest: '森林里的魔力波动', forestQuestDesc: '穿过东门，调查静谧之森深处的古代遗迹。',
+        trainingQuest: '剑士的基本功', trainingQuestDesc: '在训练场向保罗证明你的决心。',
+        roxyQuest: '无咏唱的可能', roxyQuestDesc: '在森林遗迹附近施展三次你的得意技。',
+        resolvedQuest: '遗迹的回应', resolvedQuestDesc: '古代结晶与你的魔力产生了共鸣。返回村庄寻找洛琪希。',
+        complete: '已完成', active: '进行中', fainted: '你失去了意识，被巡逻队送回了布埃纳村。',
+        mainQuest: 'MAIN QUEST · 主线', system: 'SYSTEM', pause: '暂停与设置', sfxVolume: '效果音量', cameraShake: '镜头震动', effectsQuality: '技能粒子', resume: '返回游戏', returnTitle: '返回标题',
+        objectiveRoxy: '前往村西空地，与洛琪希交谈', objectiveGate: '从村庄东门前往静谧之森', objectiveCrystal: '调查森林东部的古代魔力结晶', objectiveReturn: '返回布埃纳村向洛琪希报告', objectiveFree: '探索六面世界，寻找新的相遇',
+        roxyReturnText: '你身上的魔力痕迹变了。遗迹里发生了什么？', roxyReturnChoice: '把红色天空与未来回声告诉她。', roxyReturnOutcome: '……我明白了。这不是普通的遗迹。谢谢你平安回来，接下来我们一起调查。',
+        roxyAdviceWater: '请不要勉强。接近结晶后，用无咏唱的水球试着与它共鸣。',
+        roxyAdviceEarth: '请不要勉强。接近结晶后，用无咏唱的岩弹试着与它共鸣。',
+        roxyAdviceSword: '请不要勉强。接近结晶后，把斗气集中在剑锋上试着与它共鸣。'
+      },
+      ja: {
+        worldMark: 'SIX-FACED WORLD · 六面世界', title: '無職転生',
+        subtitle: '剣と魔法の世界で、もう一度生きる。歩みも選択も絆も、あなただけの物語になる。',
+        newGame: '新しい人生を始める', continueGame: '旅を続ける', origin: 'アスラ王国・フィットア領', chapter: 'PROLOGUE · 新たな命',
+        who: 'この世界に、どんな名を残しますか？', name: '名前', aptitude: '魔術の素質', water: '水聖級', earth: '土魔術', sword: '剣神流',
+        nature: '生き方', kind: '優しい', bold: '果断', curious: '好奇心', enter: '六面世界へ', back: '戻る',
+        continue: '続ける', adventureLog: 'ADVENTURE LOG', journal: '旅の記録', loading: '世界が広がっている…', questUpdate: '任務更新',
+        village: 'ブエナ村', villageSub: 'アスラ王国・フィットア領', forest: '静謐の森', forestSub: 'フィットア領・東部遺跡',
+        talk: '話す', inspect: '調べる', travel: '静謐の森へ', returnVillage: 'ブエナ村へ戻る',
+        paul: 'パウロ', roxy: 'ロキシー', sylphy: 'シルフィ', ghislaine: 'ギレーヌ', crystal: '古代魔力結晶',
+        rankWater: '初級冒険者・水魔術師', rankEarth: '初級冒険者・土魔術師', rankSword: '初級冒険者・剣士', date: '甲龍歴407年・春・3日',
+        noQuest: '村の一日', noQuestDesc: 'ブエナ村を自由に歩き、懐かしい人々と話そう。',
+        forestQuest: '森の魔力変動', forestQuestDesc: '東門を抜け、静謐の森の古代遺跡を調べる。',
+        trainingQuest: '剣士の基礎', trainingQuestDesc: '訓練場でパウロに覚悟を示す。',
+        roxyQuest: '無詠唱の可能性', roxyQuestDesc: '森の遺跡付近で得意技を三回使う。',
+        resolvedQuest: '遺跡の返答', resolvedQuestDesc: '古代結晶があなたの魔力に共鳴した。村へ戻りロキシーを探そう。',
+        complete: '完了', active: '進行中', fainted: '意識を失い、巡回隊にブエナ村まで運ばれた。',
+        mainQuest: 'MAIN QUEST · メイン', system: 'SYSTEM', pause: 'ポーズ・設定', sfxVolume: '効果音', cameraShake: 'カメラ振動', effectsQuality: 'スキル粒子', resume: 'ゲームへ戻る', returnTitle: 'タイトルへ',
+        objectiveRoxy: '村の西側でロキシーと話す', objectiveGate: '村の東門から静謐の森へ向かう', objectiveCrystal: '森の東部にある古代魔力結晶を調べる', objectiveReturn: 'ブエナ村へ戻りロキシーに報告する', objectiveFree: '六面世界を探索し、新たな出会いを探す',
+        roxyReturnText: 'あなたに残る魔力の痕跡が変わっています。遺跡で何があったのですか？', roxyReturnChoice: '赤い空と未来の残響について話す。', roxyReturnOutcome: '……分かりました。普通の遺跡ではありません。無事に戻ってくれてありがとう。次は一緒に調べましょう。',
+        roxyAdviceWater: '無理は禁物です。結晶に近づいたら、無詠唱の水球で共鳴を試してください。',
+        roxyAdviceEarth: '無理は禁物です。結晶に近づいたら、無詠唱の岩弾で共鳴を試してください。',
+        roxyAdviceSword: '無理は禁物です。結晶に近づいたら、闘気を剣先に集めて共鳴を試してください。'
+      }
+    };
+
+    const QUERY = new URLSearchParams(location.search);
+    const state = {
+      lang: localStorage.getItem('sixworld-lang') || 'zh',
+      name: '鲁迪', aptitude: 'water', nature: 'kind', area: 'village',
+      hp: 100, mp: 100, stamina: 100, minute: 490, day: 3,
+      quests: { welcome: 'active' }, flags: {}, positions: {}, magicCasts: 0,
+      dialogOpen: false, sound: true, paused: false,
+      settings: { volume: .7, shake: true, effects: true }
+    };
+    let gameStarted = false;
+
+    const DIALOGUE = {
+      paul: {
+        zh: { name: '保罗', text: '脚步比昨天稳了。不过，真正的剑士不是追着胜负跑，而是在出剑前就知道自己要保护什么。', choices: [
+          ['请教我今天的训练。', '好。先去东边的训练场挥剑一百次，回来时别让我看见你在数数。'],
+          ['我更想用魔术战斗。', '剑不一定是答案，但距离被拉近时，它能给你多一次选择。记住这个就够了。'] ] },
+        ja: { name: 'パウロ', text: '昨日より足運びがいい。だが本当の剣士は勝ちを追うんじゃない。剣を抜く前から、何を守るか知っている。', choices: [
+          ['今日の稽古を教えて。', 'よし。東の訓練場で百回振れ。戻るまで数を数えている顔は見せるなよ。'],
+          ['魔術で戦いたい。', '剣が答えとは限らん。だが間合いを詰められた時、もう一つの選択をくれる。'] ] }
+      },
+      roxy: {
+        zh: { name: '洛琪希', text: '东边森林的魔力流向变了。不是自然现象……那座遗迹似乎在回应某个人。', choices: [
+          ['我去调查。', '请不要勉强。接近结晶后，用无咏唱的水球试着与它共鸣。'],
+          ['老师会担心我吗？', '身为老师，担心学生是理所当然的。只是……也请你平安回来。'] ] },
+        ja: { name: 'ロキシー', text: '東の森で魔力の流れが変わりました。自然現象ではありません。あの遺跡が、誰かに応えているようです。', choices: [
+          ['調べに行きます。', '無理は禁物です。結晶に近づいたら、無詠唱の水球で共鳴を試してください。'],
+          ['先生は心配ですか？', '教師が生徒を心配するのは当然です。その……無事に戻ってきてください。'] ] }
+      },
+      sylphy: {
+        zh: { name: '希露菲', text: '村外的风带着雨后的味道。要是你准备去森林，我可以把治愈魔术编进护符里。', choices: [
+          ['谢谢，我们一起去吧。', '嗯！我会跟到桥边。再深的地方……你要答应我小心一点。'],
+          ['留在村里等我。', '那我就在这里。回来时先让我看看有没有受伤，好吗？'] ] },
+        ja: { name: 'シルフィ', text: '村の外の風、雨上がりの匂いがする。森へ行くなら、治癒魔術をお守りに編み込めるよ。', choices: [
+          ['ありがとう。一緒に行こう。', 'うん！橋までは一緒に行く。その先は……絶対に気をつけてね。'],
+          ['村で待っていて。', 'ここで待ってる。戻ったら、まず怪我がないか見せてね。'] ] }
+      },
+      ghislaine: {
+        zh: { name: '基列奴', text: '森林里有三只魔物。风向、足迹、气味，它们都在告诉你敌人在哪里。先观察，再拔剑。', choices: [
+          ['我会正面击破。', '有胆量。别把胆量用来替代判断。'],
+          ['我会避开它们。', '能不战而达成目的，也是强者的选择。'] ] },
+        ja: { name: 'ギレーヌ', text: '森に魔物が三体いる。風向き、足跡、匂い。すべてが敵の居場所を教える。まず見ろ。それから剣を抜け。', choices: [
+          ['正面から倒す。', '度胸はある。だが判断の代わりにするな。'],
+          ['戦わずに避ける。', '戦わず目的を果たすのも、強者の選択だ。'] ] }
+      },
+      crystal: {
+        zh: { name: '古代魔力结晶', text: '指尖触及冰冷表面时，庞大的记忆掠过意识。远方的天空裂开，红色光芒笼罩菲托亚领。', choices: [
+          ['把魔力注入结晶。', '结晶回应了你的魔力。某种尚未发生的灾难，留下了未来的回声。'],
+          ['立刻收回手。', '光芒熄灭了，但那一瞬间看到的景象仍烙印在记忆里。'] ] },
+        ja: { name: '古代魔力結晶', text: '冷たい表面に指が触れた瞬間、膨大な記憶が意識をよぎる。遠い空が裂け、赤い光がフィットア領を覆った。', choices: [
+          ['魔力を注ぐ。', '結晶はあなたの魔力に応えた。まだ起きていない災厄が、未来から残響を送っている。'],
+          ['すぐに手を離す。', '光は消えた。だが一瞬見えた景色は、記憶に焼き付いている。'] ] }
+      }
+    };
+
+    function tr(key) { return I18N[state.lang][key] || key; }
+    function rankText() {
+      return tr(state.aptitude === 'earth' ? 'rankEarth' : state.aptitude === 'sword' ? 'rankSword' : 'rankWater');
+    }
+
+    function syncStateUI() {
+      $('#hero-name').value = state.name;
+      $('#hud-name').textContent = state.name;
+      $('#seal').textContent = [...state.name][0] || 'R';
+      $('#hud-rank').textContent = rankText();
+      ['aptitude', 'nature'].forEach(group => {
+        const value = state[group];
+        $(`#${group}`).querySelectorAll('.segment').forEach(button => button.classList.toggle('active', button.dataset.value === value));
+      });
+      $('#sound-button').textContent = state.sound ? '♪' : '×';
+      $('#sfx-volume').value = Math.round((state.settings?.volume ?? .7) * 100);
+      $('#shake-toggle').classList.toggle('on', state.settings?.shake !== false);
+      $('#effects-toggle').classList.toggle('on', state.settings?.effects !== false);
+      updateJournal();
+      updateObjective();
+    }
+
+    function resetNewGame() {
+      Object.assign(state, {
+        name: state.lang === 'zh' ? '鲁迪' : 'ルディ', aptitude: 'water', nature: 'kind', area: 'village',
+        hp: 100, mp: 100, stamina: 100, minute: 490, day: 3,
+        quests: { welcome: 'active' }, flags: {}, positions: {}, magicCasts: 0, dialogOpen: false, paused: false
+      });
+      syncStateUI();
+    }
+
+    function applyLanguage(lang) {
+      state.lang = lang;
+      localStorage.setItem('sixworld-lang', lang);
+      document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'ja';
+      $$('[data-t]').forEach(el => { const key = el.dataset.t; if (I18N[lang][key]) el.textContent = I18N[lang][key]; });
+      $$('.lang').forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
+      $('#hud-rank').textContent = rankText();
+      $('#day').textContent = tr('date');
+      $('#quest-label').textContent = tr('questUpdate');
+      updateJournal();
+      updateObjective();
+      if (window.currentWorld) showArea(state.area);
+    }
+
+    function setScreen(id) {
+      ['#title-screen', '#creator'].forEach(sel => $(sel).classList.add('hidden'));
+      if (id) $(id).classList.remove('hidden');
+    }
+
+    function selectSegment(container, button) {
+      container.querySelectorAll('.segment').forEach(x => x.classList.remove('active'));
+      button.classList.add('active');
+    }
+
+    $$('.lang').forEach(btn => btn.addEventListener('click', () => applyLanguage(btn.dataset.lang)));
+    $('#new-game').addEventListener('click', () => { resetNewGame(); setScreen('#creator'); });
+    $('#continue-game').addEventListener('click', () => { if (loadGame()) beginGame(true); });
+    $('#creator-back').addEventListener('click', () => setScreen('#title-screen'));
+    $('#aptitude').addEventListener('click', e => { if (e.target.matches('.segment')) { selectSegment(e.currentTarget, e.target); state.aptitude = e.target.dataset.value; $('#hud-rank').textContent = rankText(); } });
+    $('#nature').addEventListener('click', e => { if (e.target.matches('.segment')) { selectSegment(e.currentTarget, e.target); state.nature = e.target.dataset.value; } });
+    $('#lang-button').addEventListener('click', () => applyLanguage(state.lang === 'zh' ? 'ja' : 'zh'));
+    $('#journal-button').addEventListener('click', () => $('#journal').classList.add('open'));
+    $('#journal-close').addEventListener('click', () => $('#journal').classList.remove('open'));
+    $('#sound-button').addEventListener('click', () => { state.sound = !state.sound; $('#sound-button').textContent = state.sound ? '♪' : '×'; });
+    $('#pause-button').addEventListener('click', () => setPaused(true));
+    $('#resume-button').addEventListener('click', () => setPaused(false));
+    $('#title-button').addEventListener('click', () => {
+      saveGame();
+      setPaused(false);
+      gameStarted = false;
+      $('#hud').classList.remove('visible');
+      setScreen('#title-screen');
+      window.currentWorld?.physics.pause();
+    });
+    $('#sfx-volume').addEventListener('input', event => { state.settings.volume = Number(event.target.value) / 100; state.sound = state.settings.volume > 0; $('#sound-button').textContent = state.sound ? '♪' : '×'; });
+    $('#shake-toggle').addEventListener('click', () => { state.settings.shake = !state.settings.shake; $('#shake-toggle').classList.toggle('on', state.settings.shake); });
+    $('#effects-toggle').addEventListener('click', () => { state.settings.effects = !state.settings.effects; $('#effects-toggle').classList.toggle('on', state.settings.effects); });
+
+    function setPaused(value) {
+      if (!gameStarted && value) return;
+      state.paused = value;
+      $('#pause-menu').classList.toggle('open', value);
+      if (window.currentWorld) {
+        if (value) window.currentWorld.physics.pause();
+        else if (!state.dialogOpen) window.currentWorld.physics.resume();
+      }
+      requestAnimationFrame(() => (value ? $('#resume-button') : document.body).focus());
+    }
+
+    window.addEventListener('keydown', event => {
+      if (event.key !== 'Escape' || !gameStarted) return;
+      event.preventDefault();
+      if (state.dialogOpen) closeDialogue();
+      else if ($('#journal').classList.contains('open')) $('#journal').classList.remove('open');
+      else setPaused(!state.paused);
+    });
+
+    function updateJournal() {
+      const rows = [];
+      const add = (status, title, desc) => rows.push(`<div class="quest"><small>${status === 'done' ? tr('complete') : tr('active')}</small><strong>${title}</strong><p>${desc}</p></div>`);
+      add(state.quests.welcome || 'active', tr('noQuest'), tr('noQuestDesc'));
+      if (state.quests.forest) {
+        const returning = state.quests.forest === 'return';
+        add(state.quests.forest === 'done' ? 'done' : 'active', tr(returning || state.quests.forest === 'done' ? 'resolvedQuest' : 'forestQuest'), tr(returning || state.quests.forest === 'done' ? 'resolvedQuestDesc' : 'forestQuestDesc'));
+      }
+      if (state.quests.training) add(state.quests.training, tr('trainingQuest'), tr('trainingQuestDesc'));
+      if (state.quests.roxy) add(state.quests.roxy, tr('roxyQuest'), tr('roxyQuestDesc'));
+      $('#quest-list').innerHTML = rows.join('');
+    }
+
+    function updateObjective(scene = window.currentWorld) {
+      let key = 'objectiveFree', targetArea = state.area, target = null;
+      if (!state.quests.forest) { key = 'objectiveRoxy'; targetArea = 'village'; target = { x: 555, y: 445 }; }
+      else if (state.quests.forest === 'return') { key = 'objectiveReturn'; targetArea = 'village'; target = { x: 555, y: 445 }; }
+      else if (state.quests.forest !== 'done' && state.area === 'village') { key = 'objectiveGate'; targetArea = 'village'; target = { x: 1760, y: 390 }; }
+      else if (state.quests.forest !== 'done') { key = 'objectiveCrystal'; targetArea = 'forest'; target = { x: 1585, y: 570 }; }
+      $('#objective-text').textContent = tr(key);
+      const arrow = $('#objective-arrow');
+      if (scene?.player && target && targetArea === state.area) {
+        const angle = Math.atan2(target.y - scene.player.y, target.x - scene.player.x) * 180 / Math.PI + 90;
+        arrow.textContent = '▲';
+        arrow.style.transform = `rotate(${angle}deg)`;
+      } else {
+        arrow.textContent = '◆';
+        arrow.style.transform = 'none';
+      }
+    }
+
+    let toastTimer;
+    function questToast(title) {
+      $('#quest-toast strong').textContent = title;
+      $('#quest-toast').classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => $('#quest-toast').classList.remove('show'), 3200);
+      updateJournal();
+    }
+
+    function showArea(area) {
+      const box = $('#area-name');
+      box.querySelector('strong').textContent = tr(area);
+      box.querySelector('small').textContent = tr(area + 'Sub');
+      box.classList.remove('show');
+      void box.offsetWidth;
+      box.classList.add('show');
+      $('#minimap').style.backgroundImage = `url("assets/${area === 'village' ? 'village-map.png' : 'forest-map.png'}")`;
+    }
+
+    function getDialogueEntry(id) {
+      if (id === 'roxy' && state.quests.forest === 'return') {
+        return { name: tr('roxy'), text: tr('roxyReturnText'), choices: [[tr('roxyReturnChoice'), tr('roxyReturnOutcome')]] };
+      }
+      return DIALOGUE[id][state.lang];
+    }
+
+    function openDialogue(id) {
+      const entry = getDialogueEntry(id);
+      state.dialogOpen = true;
+      $('#portrait').className = 'portrait ' + (id === 'paul' ? '' : id);
+      $('#speaker').textContent = entry.name;
+      $('#dialogue-text').textContent = entry.text;
+      $('#continue').hidden = true;
+      $('#choices').innerHTML = '';
+      entry.choices.forEach((choice, i) => {
+        const b = document.createElement('button');
+        b.className = 'choice';
+        b.textContent = choice[0];
+        b.addEventListener('click', () => resolveDialogue(id, i));
+        $('#choices').appendChild(b);
+      });
+      $('#dialogue').classList.add('open');
+      $('#hud').inert = true;
+      $('#journal').inert = true;
+      window.currentWorld?.pauseForDialogue();
+      requestAnimationFrame(() => $('#choices .choice')?.focus());
+    }
+
+    function resolveDialogue(id, index) {
+      const entry = getDialogueEntry(id);
+      const returningToRoxy = id === 'roxy' && state.quests.forest === 'return';
+      const outcome = id === 'roxy' && index === 0 && !returningToRoxy
+        ? tr(state.aptitude === 'earth' ? 'roxyAdviceEarth' : state.aptitude === 'sword' ? 'roxyAdviceSword' : 'roxyAdviceWater')
+        : entry.choices[index][1];
+      $('#dialogue-text').textContent = outcome;
+      $('#choices').innerHTML = '';
+      $('#continue').hidden = false;
+      if (id === 'roxy' && !state.quests.forest) {
+        state.quests.welcome = 'done'; state.quests.forest = 'active'; state.quests.roxy = 'active'; questToast(tr('forestQuest'));
+      }
+      if (id === 'paul' && !state.quests.training) { state.quests.training = 'active'; questToast(tr('trainingQuest')); }
+      if (id === 'crystal') { state.quests.forest = 'return'; state.flags.crystal = true; questToast(tr('resolvedQuest')); }
+      if (id === 'roxy' && state.quests.forest === 'return') { state.quests.forest = 'done'; state.flags.reported = true; questToast(tr('complete') + ' · ' + tr('forestQuest')); }
+      saveGame();
+      requestAnimationFrame(() => $('#continue').focus());
+    }
+
+    function closeDialogue() {
+      state.dialogOpen = false;
+      $('#dialogue').classList.remove('open');
+      $('#hud').inert = false;
+      $('#journal').inert = false;
+      window.currentWorld?.resumeAfterDialogue();
+      document.body.focus();
+    }
+    $('#continue').addEventListener('click', closeDialogue);
+    $('#dialogue').addEventListener('keydown', event => {
+      if (!['ArrowUp', 'ArrowDown'].includes(event.key)) return;
+      const buttons = [...$('#dialogue').querySelectorAll('button:not([hidden])')];
+      if (!buttons.length) return;
+      event.preventDefault();
+      const current = Math.max(0, buttons.indexOf(document.activeElement));
+      const step = event.key === 'ArrowDown' ? 1 : -1;
+      buttons[(current + step + buttons.length) % buttons.length].focus();
+    });
+
+    function saveGame() {
+      if (!gameStarted) return;
+      const data = { ...state };
+      delete data.dialogOpen;
+      localStorage.setItem('sixworld-save', JSON.stringify(data));
+      $('#continue-game').hidden = false;
+    }
+
+    function loadGame() {
+      try {
+        const saved = JSON.parse(localStorage.getItem('sixworld-save'));
+        if (!saved) return false;
+        Object.assign(state, saved, {
+          quests: { welcome: 'active', ...(saved.quests || {}) },
+          flags: { ...(saved.flags || {}) }, positions: { ...(saved.positions || {}) },
+          settings: { ...state.settings, ...(saved.settings || {}) }, dialogOpen: false, paused: false
+        });
+        syncStateUI();
+        return true;
+      } catch (_) { return false; }
+    }
+
+    class BootScene extends Phaser.Scene {
+      constructor() { super('boot'); }
+      preload() {
+        $('#loading').classList.add('show');
+        this.load.image('village', 'assets/village-map.png');
+        this.load.image('forest', 'assets/forest-map.png');
+        this.load.image('magicCircle', 'assets/magic-circle.png');
+        this.load.spritesheet('player', 'assets/player-sheet-aligned.png', { frameWidth: 328, frameHeight: 299 });
+        this.load.spritesheet('npcs', 'assets/npc-sheet-aligned.png', { frameWidth: 307, frameHeight: 319 });
+        this.load.spritesheet('spirit', 'assets/spirit-sheet.png', { frameWidth: 543, frameHeight: 724 });
+      }
+      create() {
+        const make = (key, frames, rate = 7) => {
+          if (!this.anims.exists(key)) this.anims.create({ key, frames: this.anims.generateFrameNumbers(frames.texture, { start: frames.start, end: frames.end }), frameRate: rate, repeat: -1 });
+        };
+        make('walk-down', { texture: 'player', start: 0, end: 3 }, 10);
+        make('walk-left', { texture: 'player', start: 4, end: 7 }, 10);
+        make('walk-right', { texture: 'player', start: 8, end: 11 }, 10);
+        make('walk-up', { texture: 'player', start: 12, end: 15 }, 10);
+        ['paul','roxy','sylphy','ghislaine'].forEach((id, row) => make('idle-' + id, { texture: 'npcs', start: row * 4, end: row * 4 + 3 }, 3));
+        make('spirit-float', { texture: 'spirit', start: 0, end: 3 }, 4);
+        $('#loading').classList.remove('show');
+        state.area = QUERY.get('area') || state.area;
+        this.scene.start('world', { area: state.area });
+      }
+    }
+
+    class WorldScene extends Phaser.Scene {
+      constructor() { super('world'); }
+      init(data) { this.area = data.area || 'village'; }
+      create() {
+        window.currentWorld = this;
+        this.W = 1920; this.H = 1080;
+        this.physics.world.setBounds(0, 0, this.W, this.H);
+        this.cameras.main.setBounds(0, 0, this.W, this.H);
+        this.add.image(this.W / 2, this.H / 2, this.area).setDisplaySize(this.W, this.H);
+        this.createOcclusionLayers();
+        this.addAtmosphere();
+        this.blockers = this.physics.add.staticGroup();
+        this.createBlockers();
+        const spawn = this.area === 'village' ? { x: 965, y: 845 } : { x: 230, y: 570 };
+        if (state.flags.resumePosition && state.positions?.[this.area]) Object.assign(spawn, state.positions[this.area]);
+        const previewSpawns = {
+          home: { x: 965, y: 845 }, paul: { x: 1390, y: 455 }, roxy: { x: 640, y: 470 }, sylphy: { x: 785, y: 555 },
+          ghislaine: { x: 1460, y: 770 }, forestGate: { x: 1685, y: 405 }, crystal: { x: 1485, y: 610 }, combat: { x: 1160, y: 475 }
+        };
+        if (QUERY.get('spawn') && previewSpawns[QUERY.get('spawn')]) Object.assign(spawn, previewSpawns[QUERY.get('spawn')]);
+        if (state.flags.nextSpawn) { Object.assign(spawn, state.flags.nextSpawn); delete state.flags.nextSpawn; }
+        delete state.flags.resumePosition;
+        this.player = this.physics.add.sprite(spawn.x, spawn.y, 'player', 0).setScale(.265).setDepth(spawn.y);
+        this.player.body.setSize(118, 86).setOffset(105, 194);
+        this.player.setCollideWorldBounds(true);
+        this.physics.add.collider(this.player, this.blockers);
+        this.facing = 'down';
+        this.interactables = [];
+        this.createWorldActors();
+        this.keys = this.input.keyboard.addKeys({ up:'W', down:'S', left:'A', right:'D', up2:'UP', down2:'DOWN', left2:'LEFT', right2:'RIGHT', run:'SHIFT', interact:'E', magic:'Q', attack:'F', journal:'J', escape:'ESC' });
+        this.onInteractKey = () => { if (!state.dialogOpen && !state.paused) this.interact(); };
+        this.onMagicKey = () => { if (!state.dialogOpen && !state.paused) this.castMagic(); };
+        this.onAttackKey = () => { if (!state.dialogOpen && !state.paused) this.melee(); };
+        this.onJournalKey = () => { if (!state.dialogOpen && !state.paused) $('#journal').classList.toggle('open'); };
+        this.input.keyboard.on('keydown-E', this.onInteractKey);
+        this.input.keyboard.on('keydown-Q', this.onMagicKey);
+        this.input.keyboard.on('keydown-F', this.onAttackKey);
+        this.input.keyboard.on('keydown-J', this.onJournalKey);
+        this.projectiles = this.physics.add.group();
+        this.nextStepAt = 0;
+        this.nextHudAt = 0;
+        this.cameras.main.startFollow(this.player, true, .085, .085);
+        this.setCameraZoom();
+        this.scale.on('resize', this.setCameraZoom, this);
+        this.time.delayedCall(250, () => showArea(this.area));
+        this.time.addEvent({ delay: 4000, loop: true, callback: saveGame });
+        this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+          this.scale.off('resize', this.setCameraZoom, this);
+          if (this.resizeShade) this.scale.off('resize', this.resizeShade);
+          this.input.keyboard.off('keydown-E', this.onInteractKey);
+          this.input.keyboard.off('keydown-Q', this.onMagicKey);
+          this.input.keyboard.off('keydown-F', this.onAttackKey);
+          this.input.keyboard.off('keydown-J', this.onJournalKey);
+        });
+        document.body.dataset.scene = this.area;
+      }
+
+      setCameraZoom() {
+        const w = this.scale.width, h = this.scale.height;
+        const zoom = Phaser.Math.Clamp(Math.max(w / 1920, h / 1080) * 1.12, .78, 1.16);
+        this.cameras.main.setZoom(zoom);
+      }
+
+      addAtmosphere() {
+        const g = this.add.graphics();
+        g.fillStyle(this.area === 'village' ? 0xe8ffe2 : 0xa5e8d0, .9);
+        g.fillEllipse(8, 4, 13, 7);
+        g.generateTexture('leaf-' + this.area, 16, 10); g.destroy();
+        const particles = this.add.particles(0, 0, 'leaf-' + this.area, {
+          x: { min: 0, max: this.W }, y: -20, lifespan: 9000, speedY: { min: 18, max: 34 }, speedX: { min: -22, max: 20 },
+          rotate: { min: 0, max: 240 }, scale: { start: .45, end: .08 }, alpha: { start: .32, end: 0 }, frequency: 540, quantity: 1
+        }).setDepth(14);
+        particles.setScrollFactor(1);
+        this.atmosphereShade = this.add.rectangle(0, 0, this.scale.width, this.scale.height, 0x102635, this.area === 'forest' ? .08 : .02).setOrigin(0).setScrollFactor(0).setDepth(40);
+        this.resizeShade = size => {
+          if (this.atmosphereShade?.active) this.atmosphereShade.setSize(size.width, size.height);
+        };
+        this.scale.on('resize', this.resizeShade);
+      }
+
+      addBlock(x, y, w, h) {
+        const r = this.add.rectangle(x, y, w, h, 0x000000, 0);
+        this.physics.add.existing(r, true); this.blockers.add(r); return r;
+      }
+
+      addCircleBlock(x, y, radius) {
+        const circle = this.add.circle(x, y, radius, 0x000000, 0);
+        this.physics.add.existing(circle, true);
+        circle.body.setCircle(radius);
+        this.blockers.add(circle);
+        return circle;
+      }
+
+      addOcclusionLayer(shapes, depth) {
+        const maskGraphics = this.make.graphics({ add: false });
+        maskGraphics.fillStyle(0xffffff, 1);
+        shapes.forEach(shape => {
+          if (shape.type === 'circle') maskGraphics.fillCircle(shape.x, shape.y, shape.radius);
+          else maskGraphics.fillRect(shape.x, shape.y, shape.w, shape.h);
+        });
+        const overlay = this.add.image(this.W / 2, this.H / 2, this.area).setDisplaySize(this.W, this.H).setDepth(depth);
+        overlay.setMask(maskGraphics.createGeometryMask());
+        this.occlusionMasks ||= [];
+        this.occlusionMasks.push(maskGraphics);
+      }
+
+      createOcclusionLayers() {
+        if (this.area === 'village') {
+          this.addOcclusionLayer([{ type:'rect', x:565, y:130, w:325, h:145 }], 305);
+          this.addOcclusionLayer([{ type:'rect', x:1025, y:125, w:295, h:155 }], 315);
+          this.addOcclusionLayer([{ type:'rect', x:505, y:530, w:225, h:145 }], 700);
+          this.addOcclusionLayer([{ type:'rect', x:815, y:625, w:345, h:165 }], 815);
+          this.addOcclusionLayer([{ type:'rect', x:1165, y:545, w:285, h:155 }], 735);
+          this.addOcclusionLayer([{ type:'circle', x:945, y:390, radius:66 }, { type:'circle', x:1040, y:575, radius:62 }], 620);
+          this.addOcclusionLayer([{ type:'circle', x:400, y:265, radius:105 }, { type:'circle', x:1660, y:490, radius:100 }], 575);
+        } else {
+          this.addOcclusionLayer([{ type:'circle', x:330, y:170, radius:170 }, { type:'circle', x:585, y:145, radius:145 }, { type:'circle', x:1035, y:185, radius:145 }], 355);
+          this.addOcclusionLayer([{ type:'circle', x:805, y:895, radius:150 }, { type:'circle', x:1260, y:905, radius:155 }, { type:'circle', x:1710, y:875, radius:155 }], 1010);
+          this.addOcclusionLayer([{ type:'circle', x:1370, y:625, radius:105 }], 740);
+          this.addOcclusionLayer([{ type:'rect', x:1420, y:95, w:410, h:350 }], 520);
+        }
+      }
+
+      createBlockers() {
+        if (this.area === 'village') {
+          this.addBlock(125, 520, 250, 1040);
+          this.addBlock(725, 225, 330, 175);
+          this.addBlock(1165, 225, 300, 180);
+          this.addBlock(620, 610, 225, 150);
+          this.addBlock(985, 705, 330, 130);
+          this.addBlock(1305, 625, 280, 150);
+          this.addBlock(1780, 760, 260, 600);
+          this.addBlock(570, 1015, 1140, 115);
+          [[400,270,78],[650,350,44],[945,390,48],[1040,565,44],[815,565,42],[1660,490,72],[1515,590,50]].forEach(v => this.addCircleBlock(...v));
+        } else {
+          this.addBlock(960, 65, 1920, 130);
+          this.addBlock(960, 1020, 1920, 120);
+          this.addBlock(820, 205, 150, 390);
+          this.addBlock(560, 850, 230, 460);
+          this.addBlock(1580, 270, 390, 300);
+          this.addBlock(1790, 720, 260, 610);
+          this.addBlock(120, 760, 240, 420);
+          [[335,175,105],[585,160,90],[1010,200,85],[1370,625,72],[805,895,105],[1260,900,110],[1700,880,105]].forEach(v => this.addCircleBlock(...v));
+        }
+      }
+
+      addNpc(id, x, y, frameRow) {
+        const s = this.physics.add.sprite(x, y, 'npcs', frameRow * 4).setScale(.225).setDepth(y);
+        s.body.setImmovable(true).setSize(130, 105).setOffset(88, 194);
+        this.physics.add.collider(this.player, s);
+        const marker = this.add.text(x, y - 67, '◆', { fontFamily: 'Georgia', fontSize: '18px', color: '#f6d37f', stroke: '#1b2418', strokeThickness: 4 }).setOrigin(.5).setDepth(2300);
+        this.tweens.add({ targets: marker, y: y - 75, alpha: .68, yoyo: true, repeat: -1, duration: 900, ease: 'Sine.inOut' });
+        this.interactables.push({ id, kind: 'npc', x, y, sprite: s, marker, label: tr('talk') + ' · ' + tr(id) });
+      }
+
+      createWorldActors() {
+        if (this.area === 'village') {
+          this.addNpc('paul', 1475, 420, 0);
+          this.addNpc('roxy', 555, 445, 1);
+          this.addNpc('sylphy', 775, 555, 2);
+          this.addNpc('ghislaine', 1535, 730, 3);
+          this.interactables.push({ id: 'forestGate', kind: 'gate', x: 1760, y: 390, label: tr('travel') });
+        } else {
+          this.interactables.push({ id: 'villageGate', kind: 'gate', x: 170, y: 560, label: tr('returnVillage') });
+          const circle = this.add.image(1585, 575, 'magicCircle').setScale(.17).setAlpha(.42).setTint(0x8fdcff).setDepth(520);
+          this.tweens.add({ targets: circle, angle: 360, duration: 18000, repeat: -1 });
+          const crystal = this.add.polygon(1585, 548, [0,-72, 39,-16, 25,62, 0,82, -31,53, -42,-18], 0x73d6ff, .78).setStrokeStyle(3, 0xc8f3ff, .8).setDepth(620);
+          this.tweens.add({ targets: crystal, y: 538, alpha: .96, yoyo: true, repeat: -1, duration: 1400, ease: 'Sine.inOut' });
+          this.interactables.push({ id: 'crystal', kind: 'object', x: 1585, y: 570, label: tr('inspect') + ' · ' + tr('crystal') });
+          this.createSpirits();
+        }
+      }
+
+      createSpirits() {
+        this.enemies = this.physics.add.group();
+        [[850,430],[1160,680],[1380,420]].forEach((p, i) => {
+          const e = this.physics.add.sprite(p[0], p[1], 'spirit', i % 4).setScale(.105).setDepth(p[1]).setData({ hp: 3, homeX:p[0], homeY:p[1] });
+          e.body.setCircle(145, 126, 382);
+          e.play('spirit-float');
+          e.anims.setProgress(i / 4);
+          this.enemies.add(e);
+        });
+        this.physics.add.collider(this.player, this.enemies, (_, e) => this.hurtPlayer(e));
+      }
+
+      pauseForDialogue() { this.player?.setVelocity(0); this.physics.pause(); }
+      resumeAfterDialogue() { this.physics.resume(); }
+
+      update(_, delta) {
+        if (!this.player || state.dialogOpen || state.paused) return;
+        let dx = 0, dy = 0;
+        if (this.keys.left.isDown || this.keys.left2.isDown) dx--;
+        if (this.keys.right.isDown || this.keys.right2.isDown) dx++;
+        if (this.keys.up.isDown || this.keys.up2.isDown) dy--;
+        if (this.keys.down.isDown || this.keys.down2.isDown) dy++;
+        const moving = dx || dy;
+        const running = this.keys.run.isDown && state.stamina > 2;
+        const speed = running ? 305 : 205;
+        if (moving) {
+          const len = Math.hypot(dx, dy); dx /= len; dy /= len;
+          this.player.setVelocity(dx * speed, dy * speed);
+          if (Math.abs(dx) > Math.abs(dy)) this.facing = dx < 0 ? 'left' : 'right'; else this.facing = dy < 0 ? 'up' : 'down';
+          this.player.anims.play('walk-' + this.facing, true);
+          if (this.time.now >= this.nextStepAt) {
+            sfx('step');
+            this.nextStepAt = this.time.now + (running ? 240 : 330);
+          }
+          if (running) state.stamina = Math.max(0, state.stamina - delta * .018);
+          state.minute += delta * .0023;
+        } else {
+          this.player.setVelocity(0); this.player.anims.stop();
+          state.stamina = Math.min(100, state.stamina + delta * .011);
+        }
+        this.player.setDepth(this.player.y);
+        state.mp = Math.min(100, state.mp + delta * .003);
+        this.updateEnemies();
+        this.updateInteraction();
+        state.positions[this.area] = { x: Math.round(this.player.x), y: Math.round(this.player.y) };
+        if (this.time.now >= this.nextHudAt) {
+          this.updateHud();
+          this.nextHudAt = this.time.now + 100;
+        }
+      }
+
+      updateEnemies() {
+        if (!this.enemies?.children) return;
+        this.enemies.children.iterate(e => {
+          if (!e?.active) return;
+          const dist = Phaser.Math.Distance.Between(e.x, e.y, this.player.x, this.player.y);
+          const inSanctuary = this.area === 'forest' && Phaser.Math.Distance.Between(this.player.x, this.player.y, 1585, 570) < 155;
+          e.setDepth(e.y);
+          if (!inSanctuary && dist < 190) this.physics.moveToObject(e, this.player, 34);
+          else this.physics.moveTo(e, e.getData('homeX'), e.getData('homeY'), 24);
+        });
+      }
+
+      updateInteraction() {
+        let nearest = null, best = 112;
+        this.interactables.forEach(it => {
+          const d = Phaser.Math.Distance.Between(this.player.x, this.player.y, it.x, it.y);
+          if (d < best) { best = d; nearest = it; }
+        });
+        this.nearby = nearest;
+        const box = $('#interaction');
+        box.classList.toggle('show', !!nearest);
+        if (nearest) {
+          const label = nearest.kind === 'npc' ? `${tr('talk')} · ${tr(nearest.id)}`
+            : nearest.kind === 'object' ? `${tr('inspect')} · ${tr(nearest.id)}`
+            : tr(nearest.id === 'forestGate' ? 'travel' : 'returnVillage');
+          box.querySelector('span:last-child').textContent = label;
+        }
+      }
+
+      interact() {
+        if (!this.nearby) return;
+        const it = this.nearby;
+        if (it.kind === 'npc' || it.kind === 'object') openDialogue(it.id);
+        else if (it.id === 'forestGate') this.travel('forest', { x: 260, y: 570 });
+        else this.travel('village', { x: 1680, y: 410 });
+      }
+
+      travel(area, spawn) {
+        $('#fade').classList.add('on');
+        this.nearby = null;
+        $('#interaction').classList.remove('show');
+        state.area = area; state.flags.nextSpawn = spawn; saveGame();
+        this.time.delayedCall(390, () => {
+          this.scene.restart({ area });
+          $('#fade').classList.remove('on');
+        });
+      }
+
+      burst(x, y, color, count = 9) {
+        if (!state.settings.effects) return;
+        for (let i = 0; i < count; i++) {
+          const particle = this.add.circle(x, y, Phaser.Math.Between(2, 6), color, .9).setDepth(2100);
+          const angle = Phaser.Math.FloatBetween(0, Math.PI * 2), distance = Phaser.Math.Between(24, 70);
+          this.tweens.add({ targets: particle, x: x + Math.cos(angle) * distance, y: y + Math.sin(angle) * distance, alpha: 0, scale: .2, duration: Phaser.Math.Between(220, 420), ease: 'Cubic.out', onComplete: () => particle.destroy() });
+        }
+      }
+
+      impactRing(x, y, color, startRadius = 14) {
+        if (!state.settings.effects) return;
+        const ring = this.add.circle(x, y, startRadius, color, .08).setStrokeStyle(4, color, .9).setDepth(2090).setBlendMode(Phaser.BlendModes.ADD);
+        this.tweens.add({ targets: ring, scale: 2.8, alpha: 0, duration: 240, ease: 'Cubic.out', onComplete: () => ring.destroy() });
+      }
+
+      damageNumber(x, y, value, color = '#fff1bd') {
+        const text = this.add.text(x, y, String(value), { fontFamily: 'Georgia', fontSize: '18px', fontStyle: 'bold', color, stroke: '#162020', strokeThickness: 4 }).setOrigin(.5).setDepth(2200);
+        this.tweens.add({ targets: text, y: y - 38, alpha: 0, duration: 620, ease: 'Cubic.out', onComplete: () => text.destroy() });
+      }
+
+      castMagic() {
+        const style = {
+          water: { cost: 8, color: 0x9feaff, stroke: 0xe8fdff, radius: 15, speed: 530, tone: 690, damage: 1 },
+          earth: { cost: 10, color: 0xcaa96a, stroke: 0xffe6ad, radius: 19, speed: 430, tone: 330, damage: 2 },
+          sword: { cost: 6, color: 0xffedac, stroke: 0xffffff, radius: 11, speed: 620, tone: 520, damage: 1 }
+        }[state.aptitude] || null;
+        if (!style || state.mp < style.cost) return;
+        state.mp -= style.cost; state.magicCasts++;
+        const dir = { down:[0,1], up:[0,-1], left:[-1,0], right:[1,0] }[this.facing];
+        const startX = this.player.x + dir[0]*48, startY = this.player.y + dir[1]*48;
+        let projectile;
+        if (state.aptitude === 'earth') {
+          projectile = this.add.polygon(startX, startY, [0,-21, 17,-8, 13,14, -5,22, -20,5, -15,-12], style.color, 1).setStrokeStyle(3, style.stroke, .9);
+        } else if (state.aptitude === 'sword') {
+          projectile = this.add.arc(startX, startY, 35, -58, 58, false, style.color, .12).setStrokeStyle(8, style.stroke, .95).setAngle(this.facing === 'up' ? -90 : this.facing === 'left' ? 180 : this.facing === 'right' ? 0 : 90);
+        } else {
+          projectile = this.add.ellipse(startX, startY, 25, 58, style.color, .88).setStrokeStyle(3, style.stroke, .95).setAngle(dir[0] ? 90 : 0).setBlendMode(Phaser.BlendModes.ADD);
+          const echo = this.add.ellipse(startX - dir[0]*18, startY - dir[1]*18, 15, 34, 0xdffcff, .55).setAngle(dir[0] ? 90 : 0).setDepth(1999).setBlendMode(Phaser.BlendModes.ADD);
+          this.tweens.add({ targets: echo, alpha: 0, scale: .18, duration: 190, onComplete: () => echo.destroy() });
+        }
+        this.impactRing(startX - dir[0] * 24, startY - dir[1] * 24, style.stroke, 11);
+        projectile.setDepth(2000);
+        this.physics.add.existing(projectile); this.projectiles.add(projectile); projectile.body.setCircle(style.radius); projectile.body.setVelocity(dir[0]*style.speed, dir[1]*style.speed);
+        this.tweens.add({ targets: projectile, angle: projectile.angle + 220, alpha: .72, duration: 760, onComplete: () => projectile.destroy() });
+        if (state.settings.effects) this.time.addEvent({ delay: 45, repeat: 11, callback: () => {
+          if (!projectile.active) return;
+          const trail = this.add.circle(projectile.x, projectile.y, Phaser.Math.Between(3, 7), style.color, .5).setDepth(1998);
+          this.tweens.add({ targets: trail, alpha: 0, scale: .15, duration: 260, onComplete: () => trail.destroy() });
+        }});
+        const strike = (shot, enemy) => {
+          if (!shot.active || shot.getData('hit') || !enemy?.active) return;
+          shot.setData('hit', true);
+          this.burst(enemy.x, enemy.y, style.color, state.aptitude === 'earth' ? 14 : 10);
+          this.impactRing(enemy.x, enemy.y, style.stroke, state.aptitude === 'earth' ? 20 : 15);
+          shot.destroy(); this.hitEnemy(enemy, style.damage);
+        };
+        if (this.enemies?.children) {
+          this.physics.add.overlap(projectile, this.enemies, strike);
+          this.time.addEvent({ delay: 24, repeat: 31, callback: () => {
+            if (!projectile.active) return;
+            this.enemies.children.iterate(enemy => {
+              if (enemy?.active && Phaser.Math.Distance.Between(projectile.x, projectile.y, enemy.x, enemy.y) < 38) strike(projectile, enemy);
+            });
+          }});
+        }
+        if (state.settings.shake) this.cameras.main.shake(90, .0022);
+        sfx('cast', style.tone);
+        if (state.quests.roxy && state.magicCasts >= 3) { state.quests.roxy = 'done'; questToast(tr('roxyQuest')); saveGame(); }
+      }
+
+      melee() {
+        const dir = { down:[0,1], up:[0,-1], left:[-1,0], right:[1,0] }[this.facing];
+        const x = this.player.x + dir[0]*58, y = this.player.y + dir[1]*58;
+        const arc = this.add.arc(x, y, 58, -65, 65, false, 0xf4e2ad, .3).setStrokeStyle(5, 0xfff0ba, .95).setAngle(this.facing === 'up' ? -90 : this.facing === 'left' ? 180 : this.facing === 'right' ? 0 : 90).setDepth(2000);
+        this.tweens.add({ targets: arc, alpha: 0, scale: 1.35, duration: 170, onComplete: () => arc.destroy() });
+        if (this.enemies?.children) this.enemies.children.iterate(e => { if (e?.active && Phaser.Math.Distance.Between(x,y,e.x,e.y) < 80) this.hitEnemy(e, state.aptitude === 'sword' ? 2 : 1); });
+        sfx('swing');
+      }
+
+      hitEnemy(enemy, damage = 1) {
+        const hp = enemy.getData('hp') - damage; enemy.setData('hp', hp);
+        enemy.setTintFill(0xffffff); this.time.delayedCall(90, () => enemy?.active && enemy.clearTint());
+        enemy.setVelocity((enemy.x-this.player.x)*2.2, (enemy.y-this.player.y)*2.2);
+        this.damageNumber(enemy.x, enemy.y - 34, damage, '#fff1bd');
+        this.burst(enemy.x, enemy.y, 0xffe1a0, 7);
+        if (state.settings.shake) this.cameras.main.shake(90, .003);
+        sfx('hit');
+        if (hp <= 0) {
+          this.tweens.add({ targets: enemy, alpha: 0, scale: 1.8, duration: 260, onComplete: () => enemy.destroy() });
+          sfx('defeat');
+        }
+      }
+
+      hurtPlayer(enemy) {
+        if (this.hurtCooldown) return;
+        this.hurtCooldown = true; state.hp = Math.max(0, state.hp - 5); this.player.setTint(0xff8d84);
+        const a = Phaser.Math.Angle.Between(enemy.x, enemy.y, this.player.x, this.player.y);
+        this.player.setVelocity(Math.cos(a)*240, Math.sin(a)*240);
+        if (state.settings.shake) this.cameras.main.shake(190, .007);
+        const flash = $('#hit-flash'); flash.classList.remove('show'); void flash.offsetWidth; flash.classList.add('show');
+        this.damageNumber(this.player.x, this.player.y - 38, 5, '#ff8b82');
+        enemy.setVelocity((enemy.x-this.player.x)*3.4, (enemy.y-this.player.y)*3.4);
+        this.time.delayedCall(130, () => this.player?.active && this.player.clearTint());
+        this.time.delayedCall(900, () => { this.hurtCooldown = false; });
+        sfx('hurt');
+        if (state.hp <= 0) {
+          state.hp = 100; state.mp = 100; questToast(tr('fainted'));
+          this.time.delayedCall(450, () => this.travel('village', { x:965, y:845 }));
+        }
+      }
+
+      updateHud() {
+        $('#hp').style.width = state.hp + '%'; $('#mp').style.width = state.mp + '%'; $('#sp').style.width = state.stamina + '%';
+        $('#hpv').textContent = Math.round(state.hp); $('#mpv').textContent = Math.round(state.mp); $('#spv').textContent = Math.round(state.stamina);
+        const min = Math.floor(state.minute) % 1440, hh = String(Math.floor(min / 60)).padStart(2,'0'), mm = String(min % 60).padStart(2,'0');
+        $('#clock').textContent = hh + ':' + mm;
+        $('#map-dot').style.left = (this.player.x / this.W * 100) + '%'; $('#map-dot').style.top = (this.player.y / this.H * 100) + '%';
+        document.body.dataset.player = `${Math.round(this.player.x)},${Math.round(this.player.y)}`;
+        document.body.dataset.fps = String(Math.round(this.game.loop.actualFps || 0));
+        document.body.dataset.scene = this.area;
+        document.body.dataset.enemies = this.enemies?.children
+          ? this.enemies.children.getArray().filter(enemy => enemy.active).map(enemy => enemy.getData('hp')).join(',')
+          : '';
+        updateObjective(this);
+      }
+    }
+
+    let audioContext;
+    function getAudio() {
+      if (!state.sound || (state.settings?.volume ?? 0) <= 0) return null;
+      try {
+        audioContext ||= new (window.AudioContext || window.webkitAudioContext)();
+        if (audioContext.state === 'suspended') audioContext.resume();
+        return audioContext;
+      } catch (_) { return null; }
+    }
+
+    function toneSweep(start, end, duration, gainValue = .05, type = 'sine') {
+      const ctx = getAudio(); if (!ctx) return;
+      const osc = ctx.createOscillator(), gain = ctx.createGain();
+      osc.type = type; osc.frequency.setValueAtTime(start, ctx.currentTime); osc.frequency.exponentialRampToValueAtTime(Math.max(30, end), ctx.currentTime + duration);
+      const volume = (state.settings?.volume ?? .7) * gainValue;
+      gain.gain.setValueAtTime(volume, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(.0001, ctx.currentTime + duration);
+      osc.connect(gain).connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + duration);
+    }
+
+    function noiseBurst(duration, gainValue, cutoff = 900) {
+      const ctx = getAudio(); if (!ctx) return;
+      const size = Math.max(1, Math.floor(ctx.sampleRate * duration));
+      const buffer = ctx.createBuffer(1, size, ctx.sampleRate), data = buffer.getChannelData(0);
+      for (let i = 0; i < size; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / size);
+      const source = ctx.createBufferSource(), filter = ctx.createBiquadFilter(), gain = ctx.createGain();
+      source.buffer = buffer; filter.type = 'lowpass'; filter.frequency.value = cutoff;
+      gain.gain.setValueAtTime((state.settings?.volume ?? .7) * gainValue, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(.0001, ctx.currentTime + duration);
+      source.connect(filter).connect(gain).connect(ctx.destination); source.start();
+    }
+
+    function sfx(kind, pitch = 620) {
+      if (kind === 'step') { noiseBurst(.035, .018, 420); return; }
+      if (kind === 'swing') { noiseBurst(.12, .08, 1800); toneSweep(520, 150, .13, .026, 'triangle'); return; }
+      if (kind === 'cast') { toneSweep(pitch * .55, pitch, .15, .055, 'sine'); toneSweep(pitch, pitch * 1.7, .19, .025, 'triangle'); return; }
+      if (kind === 'hit') { noiseBurst(.11, .12, 620); toneSweep(140, 62, .13, .08, 'square'); return; }
+      if (kind === 'hurt') { noiseBurst(.16, .12, 430); toneSweep(105, 46, .2, .09, 'sawtooth'); return; }
+      if (kind === 'defeat') { toneSweep(260, 820, .28, .055, 'triangle'); return; }
+      toneSweep(523, 740, .16, .04, 'sine');
+    }
+
+    const game = new Phaser.Game({
+      type: Phaser.AUTO, parent: 'game', backgroundColor: '#071415',
+      scale: { mode: Phaser.Scale.RESIZE, width: window.innerWidth, height: window.innerHeight },
+      render: { antialias: false, pixelArt: true, roundPixels: true },
+      physics: { default: 'arcade', arcade: { gravity: { y: 0 }, debug: false } },
+      scene: [BootScene, WorldScene]
+    });
+
+    function beginGame(resume = false) {
+      if (!resume) state.name = $('#hero-name').value.trim() || (state.lang === 'zh' ? '鲁迪' : 'ルディ');
+      else state.flags.resumePosition = true;
+      state.paused = false;
+      $('#pause-menu').classList.remove('open');
+      $('#hud-name').textContent = state.name;
+      $('#seal').textContent = [...state.name][0] || 'R';
+      $('#hud-rank').textContent = rankText();
+      setScreen(null);
+      $('#hud').classList.add('visible');
+      gameStarted = true;
+      saveGame();
+      if (window.currentWorld) window.currentWorld.scene.restart({ area: state.area });
+      sfx('ui');
+      setTimeout(() => showArea(state.area), 300);
+    }
+    $('#enter-world').addEventListener('click', () => beginGame(false));
+
+    applyLanguage(state.lang);
+    updateJournal();
+    $('#continue-game').hidden = !localStorage.getItem('sixworld-save');
+    if (QUERY.get('autoplay') === '1') {
+      loadGame();
+      setTimeout(() => beginGame(true), 450);
+    }
+    window.addEventListener('beforeunload', saveGame);
+  })();
+  </script>
+</body>
+</html>
