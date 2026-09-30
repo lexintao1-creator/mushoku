@@ -1,0 +1,84 @@
+.clock {display:none}
+[hidden]{display:none!important}
+/* Illustrated command wells and a compact, unframed exploration HUD. */
+.action-dock .skill-art{position:absolute;inset:3px;background-image:url('skill-icons.webp');background-size:300% 200%;background-position:0 0;pointer-events:none}
+.action-dock button:nth-child(2) .skill-art{background-position:50% 0}
+.action-dock button:nth-child(3) .skill-art{background-position:100% 0}
+.action-dock button:nth-child(4) .skill-art{background-position:0 100%}
+.action-dock button:nth-child(5) .skill-art{background-position:50% 100%}
+.action-dock button:nth-child(6) .skill-art{background-position:100% 100%}
+.action-dock button svg{visibility:hidden}
+#hud .action-dock button{border:2px solid #a99567;border-radius:3px;box-shadow:inset 0 0 0 2px #302b23,0 3px 8px #0009}
+.action-dock kbd{background:#111b20e8;padding:1px 4px;border-radius:2px}
+#hud .identity{background:none;border:0;padding:0;text-shadow:0 2px 5px #000}
+#hud .objective{background:none!important;border:0;padding:0!important;max-width:240px;text-shadow:0 2px 5px #000,0 0 10px #000}
+#hud .bars{background:#101718d9;border:1px solid #b8a47788;border-left:3px solid #d4c28c;border-radius:2px}
+#hud .track{height:8px;border:1px solid #151916;box-shadow:0 0 0 1px #b4a78844}
+#return-veil,#taboo-veil{position:fixed;inset:0;z-index:200;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .3s}
+#return-veil{display:flex;flex-direction:column;align-items:center;justify-content:center;background:#080809;color:#e9e3dc;padding:30px;text-align:center}
+#return-veil.visible{opacity:1;visibility:visible;pointer-events:auto}
+.return-line{font:26px/1.8 Georgia,'Yu Mincho','Microsoft YaHei',serif}
+.return-subline{font-size:14px;color:#afa3a5;margin-top:28px}
+#taboo-veil{box-shadow:inset 0 0 160px 80px #510b24db;background:#18000d55}
+#taboo-veil.visible{opacity:1;visibility:visible;animation:taboo-pulse .45s alternate infinite}
+@keyframes taboo-pulse{to{box-shadow:inset 0 0 100px 45px #790d35e8}}
+.memory-entry{margin-top:22px;padding:18px 0;border-top:1px solid #b9a98055;color:#c6bac9;font:14px/1.9 Georgia,'Yu Mincho','Microsoft YaHei',serif}
+@media(prefers-reduced-motion:reduce){#taboo-veil.visible{animation:none}}
+.area-name {display:none}
+#game::after {content:"";position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 110px #06191638}
+.chapter-ending {font:20px/2 Georgia,'Yu Mincho','Microsoft YaHei',serif;color:#e4e2d4;max-width:620px;margin:20px auto}
+.identity {background:rgba(14,25,26,.9);border:1px solid #ffffff26;border-left:3px solid #d5bd83;padding:12px 18px}
+.identity-seal {display:none}
+.objective {top:100px!important;left:22px!important;width:245px!important;background:rgba(14,25,26,.86)!important;padding:15px!important;border-left:2px solid #d5bd83}
+.objective small {font-size:10px;letter-spacing:0}
+.objective-row {font-size:13px;line-height:1.7}
+.bars {width:260px;bottom:22px;background:rgba(14,25,26,.88);border:1px solid #ffffff26}
+.track {height:7px;border-radius:2px}
+.hud-actions .icon-btn {border-radius:4px;background:#142122e8}
+#minimap {width:180px;height:102px;opacity:1;border:2px solid #c3b58a80}
+.action-dock {position:absolute;bottom:24px;left:50%;transform:translateX(-50%);display:flex;gap:7px;pointer-events:auto}
+.action-dock button {position:relative;width:58px;height:58px;border:1px solid #c7d8d64d;border-radius:5px;background:#152629f2;cursor:pointer;overflow:hidden;color:#eef8f7}
+.action-dock button:hover {border-color:#ecd399;background:#284345}
+.action-dock svg {width:25px;height:25px;stroke:currentColor;fill:none;stroke-width:1.5}
+.action-dock kbd {position:absolute;right:4px;bottom:2px;font:10px sans-serif;color:#d1c69c}
+.action-dock .cooldown {position:absolute;inset:0;background:#091315b8;transform-origin:bottom;pointer-events:none}
+.adventure-status {position:absolute;left:25px;bottom:108px;font-size:11px;color:#eee0b8;text-shadow:0 2px 5px #000}
+#boss-status {position:absolute;left:50%;top:30px;transform:translateX(-50%);width:min(370px,36vw);text-align:center;font-size:13px;text-shadow:0 2px 5px #000;display:none}
+#boss-status .boss-track {margin-top:9px;height:6px;background:#172320;border:1px solid #ecd19960}
+#boss-health {height:100%;background:#e78e75;transition:width .15s}
+#chapter-notice {position:absolute;left:50%;top:25%;transform:translateX(-50%);width:min(600px,80vw);text-align:center;font:28px Georgia,'Yu Mincho',serif;color:#f4e4bd;text-shadow:0 3px 14px #000;opacity:0;transition:opacity .4s;pointer-events:none}
+#chapter-notice.visible {opacity:1}
+.interaction {bottom:108px}
+.world-label {font-size:12px}
+.title-copy h1 {font-size:80px;line-height:1.08}
+.title-sub {font-size:17px}
+#journal {z-index:25}
+@media(max-width:800px){.identity{padding:8px 10px}.identity small{font-size:9px}.hud-top{left:12px;right:12px;top:12px}.hud-actions{gap:4px}.hud-actions .icon-btn{width:34px;height:34px}.objective{left:12px!important;top:80px!important;width:185px!important;padding:10px!important}.bars{left:12px;bottom:90px;width:185px;padding:5px 10px}.action-dock{bottom:14px}.action-dock button{width:48px;height:48px}#minimap{right:12px;bottom:92px;width:110px;height:62px}.adventure-status{left:14px;bottom:163px}#boss-status{top:190px;width:250px}.title-copy h1{font-size:48px}.title-copy{width:85vw}.interaction{bottom:210px}.touch-move{display:grid!important}}
+.touch-move {display:none;position:absolute;left:12px;bottom:14px;grid-template-columns:repeat(3,32px);grid-template-rows:repeat(2,32px);pointer-events:auto;gap:3px}
+.touch-move button {border:1px solid #ffffff45;background:#172c2edd;color:white;border-radius:4px;touch-action:none}
+.touch-move button:first-child {grid-column:2}
+.touch-move button:nth-child(2) {grid-column:1;grid-row:2}
+.touch-move button:nth-child(3) {grid-column:2;grid-row:2}
+.touch-move button:nth-child(4) {grid-column:3;grid-row:2}
+.icon-btn svg {width:18px;height:18px}
+#adventure-panel[hidden] {display:none}
+#adventure-panel {position:fixed;inset:0;z-index:50;background:#071015b8;backdrop-filter:blur(6px);display:grid;place-items:center;padding:20px}
+.adventure-panel-inner {width:min(850px,100%);max-height:88vh;overflow:auto;background:#17282c;border:1px solid #c1d2cc55;padding:24px;box-shadow:0 20px 80px #0007}
+.adventure-panel-inner header {display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}
+.adventure-panel-inner h2 {font:24px Georgia,'Yu Mincho',serif;margin:0;color:#eedbb5}
+.large-map {position:relative;width:100%;aspect-ratio:16/9}
+.large-map img {display:block;width:100%;height:100%;object-fit:fill}
+.map-you {position:absolute;width:12px;height:12px;background:#fff9d5;border:2px solid #164243;border-radius:50%;transform:translate(-50%,-50%);z-index:2;box-shadow:0 0 0 5px #fff8}
+.map-location {position:absolute;transform:translate(-50%,-100%);background:#122027dd;color:#f7e4ba;padding:2px 4px;font-size:10px;white-space:nowrap}
+.inventory-row {display:flex;justify-content:space-between;padding:16px 4px;border-bottom:1px solid #ffffff18;color:#c9d9d4}
+.inventory-row strong {color:#eedbb5}
+#adventure-content>.primary {margin-top:24px}
+button:disabled {opacity:.45;cursor:default}
+.portrait {background-image:url('npc-cast-v2.png');background-size:400% auto;background-position:0 7%;background-color:#243436}
+.portrait.roxy {background-position:33.333% 7%}
+.portrait.sylphy {background-position:66.666% 7%}
+.portrait.ghislaine {background-position:100% 7%}
+.portrait.caravan {background:url('village-map.png') 52% 0/600% auto}
+.portrait.scout {background:url('demon-map.png') 34% 50%/400% auto}
+.portrait.crystal {background:url('forest-map.png') 95% 20%/500% auto}
+@media(max-width:800px){.action-dock{left:auto;right:12px;transform:none;display:grid;grid-template-columns:repeat(3,40px);gap:4px}.action-dock button{width:40px;height:40px}.action-dock svg{width:20px;height:20px}.bars{bottom:115px}.adventure-status{bottom:188px}#minimap{bottom:115px}.touch-move{bottom:18px}.hud-actions .icon-btn{width:29px;height:32px}.hud-actions{gap:3px}.identity strong{font-size:12px}.identity small{display:none}.adventure-panel-inner{padding:14px}.map-location{font-size:8px;max-width:65px;white-space:normal}.portrait{min-height:160px}}

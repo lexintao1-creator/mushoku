@@ -198,7 +198,7 @@
         <h2 data-t="who">你将如何被这个世界记住？</h2>
         <div class="field">
           <label for="hero-name" data-t="name">名字</label>
-          <input id="hero-name" maxlength="12" value="鲁迪" autocomplete="off">
+          <input id="hero-name" maxlength="12" value="旅人" autocomplete="off">
         </div>
         <div class="field">
           <label data-t="aptitude">魔力资质</label>
@@ -228,7 +228,7 @@
     <div class="hud-top">
       <div class="identity">
         <div class="identity-seal"><span id="seal">鲁</span></div>
-        <div><strong id="hud-name">鲁迪</strong><small id="hud-rank">初级冒险者 · 水魔术士</small></div>
+        <div><strong id="hud-name">旅人</strong><small id="hud-rank">初级冒险者 · 水魔术士</small></div>
       </div>
       <div class="clock"><strong id="clock">08:10</strong><small id="day">甲龙历 407年 · 春 · 3日</small></div>
       <div class="hud-actions">
@@ -284,6 +284,11 @@
   <div id="loading" class="loading" data-t="loading">世界正在展开…</div>
 
   <script src="assets/phaser.min.js"></script>
+  <script src="assets/lucide.min.js"></script>
+  <link rel="stylesheet" href="assets/revision.css">
+  <script src="assets/presentation.js"></script>
+  <script src="assets/return-by-death.js"></script>
+  <script src="assets/adventure.js"></script>
   <script>
   (() => {
     'use strict';
@@ -344,7 +349,7 @@
     const QUERY = new URLSearchParams(location.search);
     const state = {
       lang: localStorage.getItem('sixworld-lang') || 'zh',
-      name: '鲁迪', aptitude: 'water', nature: 'kind', area: 'village',
+      name: '旅人', aptitude: 'water', nature: 'kind', area: 'village',
       hp: 100, mp: 100, stamina: 100, minute: 490, day: 3,
       quests: { welcome: 'active' }, flags: {}, positions: {}, magicCasts: 0,
       dialogOpen: false, sound: true, paused: false,
@@ -418,10 +423,13 @@
     }
 
     function resetNewGame() {
+      window.resetReturnByDeath?.();
       Object.assign(state, {
-        name: state.lang === 'zh' ? '鲁迪' : 'ルディ', aptitude: 'water', nature: 'kind', area: 'village',
+        name: '旅人', aptitude: 'water', nature: 'kind', area: 'village',
         hp: 100, mp: 100, stamina: 100, minute: 490, day: 3,
-        quests: { welcome: 'active' }, flags: {}, positions: {}, magicCasts: 0, dialogOpen: false, paused: false
+        quests: { welcome: 'active' }, flags: {}, positions: {}, magicCasts: 0, dialogOpen: false, paused: false,
+        inventory: { gold: 0, potions: 3, herbs: 0, shards: 0 },
+        progress: { kills: 0, training: 0, harvests: [], boss: false }
       });
       syncStateUI();
     }
@@ -544,6 +552,8 @@
     }
 
     function getDialogueEntry(id) {
+      const echo = window.returnDialogue?.(id);
+      if (echo) return echo;
       if (id === 'roxy' && state.quests.forest === 'return') {
         return { name: tr('roxy'), text: tr('roxyReturnText'), choices: [[tr('roxyReturnChoice'), tr('roxyReturnOutcome')]] };
       }
@@ -573,6 +583,7 @@
     }
 
     function resolveDialogue(id, index) {
+      if (window.resolveReturnDialogue?.(id, index)) return;
       const entry = getDialogueEntry(id);
       const returningToRoxy = id === 'roxy' && state.quests.forest === 'return';
       const outcome = id === 'roxy' && index === 0 && !returningToRoxy
@@ -587,6 +598,7 @@
       if (id === 'paul' && !state.quests.training) { state.quests.training = 'active'; questToast(tr('trainingQuest')); }
       if (id === 'crystal') { state.quests.forest = 'return'; state.flags.crystal = true; questToast(tr('resolvedQuest')); }
       if (id === 'roxy' && state.quests.forest === 'return') { state.quests.forest = 'done'; state.flags.reported = true; questToast(tr('complete') + ' · ' + tr('forestQuest')); }
+      window.adventureDialogueChoice?.(id, index);
       saveGame();
       requestAnimationFrame(() => $('#continue').focus());
     }
@@ -597,6 +609,7 @@
       $('#hud').inert = false;
       $('#journal').inert = false;
       window.currentWorld?.resumeAfterDialogue();
+      window.adventureDialogueClosed?.();
       document.body.focus();
     }
     $('#continue').addEventListener('click', closeDialogue);
@@ -612,7 +625,7 @@
 
     function saveGame() {
       if (!gameStarted) return;
-      const data = { ...state };
+      const data = window.returnSaveOverride?.() || { ...state };
       delete data.dialogOpen;
       localStorage.setItem('sixworld-save', JSON.stringify(data));
       $('#continue-game').hidden = false;
@@ -636,12 +649,15 @@
       constructor() { super('boot'); }
       preload() {
         $('#loading').classList.add('show');
-        this.load.image('village', 'assets/village-map.png');
-        this.load.image('forest', 'assets/forest-map.png');
-        this.load.image('magicCircle', 'assets/magic-circle.png');
-        this.load.spritesheet('player', 'assets/player-sheet-aligned.png', { frameWidth: 328, frameHeight: 299 });
-        this.load.spritesheet('npcs', 'assets/npc-sheet-aligned.png', { frameWidth: 307, frameHeight: 319 });
-        this.load.spritesheet('spirit', 'assets/spirit-sheet.png', { frameWidth: 543, frameHeight: 724 });
+        this.load.image('village', 'assets/village-map.webp');
+        this.load.image('forest', 'assets/forest-v3.webp');
+        this.load.image('demon', 'assets/demon-map.webp');
+        this.load.image('cast', 'assets/npc-cast-v2.webp');
+        this.load.image('guardian', 'assets/stone-guardian.webp');
+        this.load.image('magicCircle', 'assets/magic-circle.webp');
+        this.load.spritesheet('player', 'assets/player-sheet-aligned.webp', { frameWidth: 328, frameHeight: 299 });
+        this.load.spritesheet('npcs', 'assets/npc-sheet-aligned.webp', { frameWidth: 307, frameHeight: 319 });
+        this.load.spritesheet('spirit', 'assets/spirit-sheet.webp', { frameWidth: 543, frameHeight: 724 });
       }
       create() {
         const make = (key, frames, rate = 7) => {
@@ -654,7 +670,8 @@
         ['paul','roxy','sylphy','ghislaine'].forEach((id, row) => make('idle-' + id, { texture: 'npcs', start: row * 4, end: row * 4 + 3 }, 3));
         make('spirit-float', { texture: 'spirit', start: 0, end: 3 }, 4);
         $('#loading').classList.remove('show');
-        state.area = QUERY.get('area') || state.area;
+        const requestedArea = QUERY.get('area') || state.area;
+        state.area = ['village', 'forest', 'demon'].includes(requestedArea) ? requestedArea : 'village';
         this.scene.start('world', { area: state.area });
       }
     }
@@ -1098,6 +1115,7 @@
       toneSweep(523, 740, .16, .04, 'sine');
     }
 
+    installAdventure(WorldScene, { state, tr, saveGame, questToast, sfx, getAudio, openDialogue, setPaused, I18N, DIALOGUE, getStarted: () => gameStarted });
     const game = new Phaser.Game({
       type: Phaser.AUTO, parent: 'game', backgroundColor: '#071415',
       scale: { mode: Phaser.Scale.RESIZE, width: window.innerWidth, height: window.innerHeight },
@@ -1107,7 +1125,7 @@
     });
 
     function beginGame(resume = false) {
-      if (!resume) state.name = $('#hero-name').value.trim() || (state.lang === 'zh' ? '鲁迪' : 'ルディ');
+      if (!resume) state.name = $('#hero-name').value.trim() || '旅人';
       else state.flags.resumePosition = true;
       state.paused = false;
       $('#pause-menu').classList.remove('open');
