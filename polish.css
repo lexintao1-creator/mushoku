@@ -1,0 +1,8 @@
+.portrait-mini,.dialog-art{background-image:none}
+#dialog .dialog-art{margin-top:-54px;min-height:300px;mask-image:linear-gradient(0deg,transparent,#000 12%)}
+#dialog{border-top:2px solid #ccb88480;background:linear-gradient(110deg,#122029f5,#121a26fa)}
+.skill .cooldown{background:#0c1322c4}
+#area-label{background:linear-gradient(90deg,transparent,#10192255,transparent);min-width:180px}
+.objective{max-width:285px}.objective strong{font-size:13px}
+.title-copy h1{text-shadow:0 5px 35px #0008}
+@media(max-width:850px){#dialog .dialog-art{min-height:220px;margin-top:-20px}.player-status{min-width:180px;width:180px}.player-status>span:last-child{display:none}.hud-actions{gap:3px}.hud-actions button{width:30px;height:30px}.objective{top:110px;max-width:190px}.objective small{font-size:9px}.objective strong{font-size:11px}#area-label{top:72px;max-width:190px;text-align:left;min-width:0;padding:7px}#minimap{bottom:88px;width:100px;height:66px}#skillbar{left:10px;right:10px;gap:6px}.skill{width:calc((100vw - 50px)/6);max-width:56px;flex-shrink:0}#prompt{bottom:178px;max-width:94vw;white-space:normal;text-align:center;font-size:11px}#toast{top:28%;font-size:12px}#castbar{bottom:84px;width:200px}.touch-actions{bottom:205px}.dpad{bottom:200px}h1{font-size:46px}.title-copy{bottom:16%}.title-copy p{font-size:13px!important}.title-menu{gap:7px}.title-menu button{min-width:104px;padding:10px}}
