@@ -49,6 +49,18 @@ const copy = value => structuredClone(value);
 const mix = () => ({ chant: 0, flow: 0, pressure: 0, wind: 0, rain: 0, ambience: 1 });
 let sealTextureSerial = 0;
 const RUNE_SIZE = 256;
+export const AIR_SEAL_COLORS = Object.freeze([0xff655a, 0x65bfff, 0xffd36a]);
+export function colorAirSealPixels(data, layer) {
+  if (layer === 1) return data;
+  const color = AIR_SEAL_COLORS[layer];
+  if (color === undefined) throw new RangeError('Air seal layer must be 0..2');
+  const channels = [color >>> 16, color >>> 8 & 255, color & 255];
+  for (let i = 0; i < data.length; i += 4) {
+    const brightness = Math.max(data[i], data[i + 1], data[i + 2]) / 255;
+    for (let k = 0; k < 3; k++) data[i + k] = Math.round(channels[k] * brightness);
+  }
+  return data;
+}
 const SEAL_ALPHA_LUT = Uint8ClampedArray.from({ length: 256 }, (_, alpha) =>
   alpha <= 32 ? 0 : Math.round(255 * ((alpha - 32) / 223) ** 0.7));
 
@@ -302,10 +314,13 @@ export class MajorSpellRenderer {
       ctx.clearRect(0, 0, RUNE_SIZE, RUNE_SIZE);
       ctx.drawImage(entry.source, b.x, b.y, b.width, b.height, 8, 8, 240, 240);
       // New authored coarse symbols stay complete: no mask, dilation or alpha rewrite.
-      if (projection.readabilityLOD === true) {
+      if (projection.readabilityLOD === true || plane.layer !== 1) {
         const pixels = ctx.getImageData(0, 0, RUNE_SIZE, RUNE_SIZE);
-        clarifySealPixels(pixels.data);
-        readableSealPixels(pixels.data, RUNE_SIZE, RUNE_SIZE, plane.layer, rx, ry);
+        if (projection.readabilityLOD === true) {
+          clarifySealPixels(pixels.data);
+          readableSealPixels(pixels.data, RUNE_SIZE, RUNE_SIZE, plane.layer, rx, ry);
+        }
+        colorAirSealPixels(pixels.data, plane.layer);
         ctx.putImageData(pixels, 0, 0);
       }
       entry.lodTexture.refresh();
@@ -498,7 +513,7 @@ export class MajorSpellRenderer {
         const drawn = this.frame(['sealInner', 'sealMiddle', 'sealOuter'][j], this.sealOnly ?
           (runePhase % TAU + TAU) % TAU / TAU * this.clips.get(['sealInner', 'sealMiddle', 'sealOuter'][j])?.durationMs : age, position,
           e.rings[j], out, spin, size, this.sealOnly ? { phase: runePhase, layer: j } : null);
-        if (this.sealOnly) out.sealLayers.push({ ...position, distance, normalAngle: aimAngle, runePhase, visible: drawn });
+        if (this.sealOnly) out.sealLayers.push({ ...position, index: j, color: AIR_SEAL_COLORS[j], reveal: e.reveal[j], distance, normalAngle: aimAngle, runePhase, visible: drawn });
         if (!drawn && !this.sealOnly) this.arc(this.rings, caster.x, caster.y, 28 + j * 16, spin, e.reveal[j], e.rings[j] * 0.55, 0.65);
       }
       if (this.sealOnly && (!staff || !aim)) out.diagnostics.push('staff-and-aim-required');
@@ -535,7 +550,7 @@ export class MajorSpellRenderer {
     for (let i = this.used; i < this.pool.length; i++) this.pool[i].setVisible(false);
     // Always report unfinished main assets, even before their phase becomes visible.
     if (this.sealOnly) {
-      out.missingAssets.push('formal-release-bitmap');
+      if (!waterShaping) out.missingAssets.push('formal-release-bitmap');
       out.ambientFactor = 1;
       if (weather.has(phase)) { out.audioMix = mix(); out.diagnostics.push('weather-authority-preserved-release-visual-unavailable'); }
     }

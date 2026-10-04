@@ -293,7 +293,7 @@ export function renderArcane(groundG, airG, state = {}) {
     light(channel.origin, 38 + p * 22, 0.18 + p * 0.25);
     slots++;
   }
-  if (valid(release) && Number.isFinite(release.age) && release.age >= 0 && release.age < 320 && slots < limit) {
+  if (!state.bitmapWater && valid(release) && Number.isFinite(release.age) && release.age >= 0 && release.age < 320 && slots < limit) {
     const t = release.age / 320, fade = (1 - t) ** 1.5;
     const scale = clamp(number(release.scale, 1), 0.6, 1.5), d = direction(release.dx, release.dy);
     if (valid(state.caster)) groundSeal(groundG, state.caster, clamp(1 - t), time, fade * 0.7, low);

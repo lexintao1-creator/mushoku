@@ -25,6 +25,7 @@
 // Existing main can use shot.castId + shot.projection.visualOrigin instead.
 // New Meowa spear animation is shared by formation/flight, not the previous water sphere.
 
+import { pressureFlow } from './pressure-flow.mjs';
 const finite = Number.isFinite;
 const point = p => p && finite(p.x) && finite(p.y);
 const number = (v, fallback = 0) => finite(v) ? v : fallback;
@@ -88,8 +89,8 @@ export function createWaterSpearManifest({ flightKey = WATER_SPEAR_ASSETS.flight
     flight: { frames: frames({ roots: WATER_SPEAR_ROOTS }, flightKey), loopMs: 800,
       scale: (115 - 7 - 58) / Math.max(...WATER_SPEAR_ROOTS.map(root => root.x - 4)) },
     impact: { frames: frames({ roots: WATER_PRESSURE_ROOTS }, impactKey), durationMs: 1200, scale: 160 / 256 },
-    airflow: { frames: frames({ roots: Array.from({ length: 16 }, () => ({ x: 116, y: 64, unit: 'pixels' })) }, WATER_SPEAR_ASSETS.airflow.key), loopMs: 1100, scale: 1 },
-    release: { frames: [{ key: WATER_SPEAR_ASSETS.release.key, frame: 0, root: { x: 128, y: 128, unit: 'pixels' } }], durationMs: 760, scale: 1 }
+    airflow: { frames: frames({ roots: Array.from({ length: 16 }, () => ({ x: 116, y: 64, unit: 'pixels' })) }, WATER_SPEAR_ASSETS.airflow.key), loopMs: 1100, scale: 1, orbit: true },
+    release: { frames: [{ key: WATER_SPEAR_ASSETS.release.key, frame: 0, root: { x: 128, y: 128, unit: 'pixels' } }], durationMs: 1100, scale: 1 }
   };
 }
 
@@ -194,7 +195,7 @@ export class WaterSpearRenderer {
     const knownKeys = new Set(Object.values(this.manifest).flatMap(c => c?.frames?.map(f => f.key) ?? []));
     const knownDecodedBytes = Object.values(WATER_SPEAR_ASSETS).reduce((sum, a) => sum + (knownKeys.has(a.key) ? a.decodedBytes : 0), 0);
     const out = { lights: [], active: 0, allocated: this.pool.length, dropped: 0,
-      byStage: { formation: 0, flight: 0, impact: 0, airflow: 0, release: 0 }, formation: null, anchors: null, missingTextures: [], diagnostics: [],
+      byStage: { formation: 0, flight: 0, impact: 0, airflow: 0, release: 0 }, formation: null, anchors: null, flow: null, missingTextures: [], diagnostics: [],
       paused: input?.paused === true,
       impactState: { resume: 'simulation-age-no-restart', seenPolicy: 'bounded-recent-until-effect-expiry',
         consumed: this.consumed.size, limit: this.maxConsumed, saturated: this.consumed.size >= this.maxConsumed },
@@ -261,6 +262,7 @@ export class WaterSpearRenderer {
           this.light(out, tail, 20, alpha * (0.13 + Math.sin(phase + 2.2) * 0.035));
         }
         this.pendingAirflow = { materialAge, tip, angle: Math.atan2(aim.y, aim.x), scale: length / 104 * (0.35 + progress * 0.65), alpha: alpha * 0.3, depth: number(caster?.y, staff.y) + 0.15 };
+        if (drawn && this.manifest.airflow?.orbit) out.flow = pressureFlow({ tip, direction: aim, progress, materialAgeMs: materialAge, loopMs: c.loopMs });
       }
     } else { this.channelKey = null; this.channelStart = null; }
 
@@ -305,10 +307,11 @@ export class WaterSpearRenderer {
       const age = time - event.start, c = this.manifest.release;
       if (!c || age >= c.durationMs) { this.releases.delete(id); continue; }
       const p = clamp(age / c.durationMs);
-      this.bitmap('release', age, event, event.angle, (40 + 240 * p) / 256 * c.scale, (1 - p) ** 2 * 0.75, event.depth, out);
+      // Keep the original pressure rim; wider scale thickens its authored edge.
+      this.bitmap('release', age, event, event.angle + Math.PI / 2, (70 + 350 * p) / 256 * c.scale, (1 - p) ** 1.4 * 0.8, event.depth, out);
     }
     const airflow = this.pendingAirflow; this.pendingAirflow = null;
-    if (airflow && this.manifest.airflow) this.bitmap('airflow', airflow.materialAge, airflow.tip, airflow.angle, airflow.scale * this.manifest.airflow.scale, airflow.alpha, airflow.depth, out);
+    if (airflow && this.manifest.airflow && !this.manifest.airflow.orbit) this.bitmap('airflow', airflow.materialAge, airflow.tip, airflow.angle, airflow.scale * this.manifest.airflow.scale, airflow.alpha, airflow.depth, out);
     for (let i = this.used; i < this.pool.length; i++) this.pool[i].setVisible(false);
     out.active = this.used; out.allocated = this.pool.length; out.missingTextures = [...this.missing];
     out.diagnostics = [...new Set(out.diagnostics)];

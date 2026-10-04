@@ -38,3 +38,153 @@ select{max-width:140px;padding:5px;background:#303c32;border-color:var(--ui-line
 @media(max-width:600px){#hud{grid-template-columns:138px minmax(0,1fr) 32px;gap:8px}.vitals{width:138px}.vitals strong{max-width:60px}#hud #menu{width:32px;height:32px}.place{padding:7px}.place span{font-size:11px}.place small{font-size:10px}#message{top:152px}#dialog{padding:14px}#dialog p{font-size:13px}body[data-touch=true] #stick,body[data-touch=true] #aim-pad{bottom:calc(var(--ui-bottom) + 75px)}body[data-touch=true] #touch button{bottom:calc(var(--ui-bottom) + 175px)}body[data-touch=true] #charging{top:102px;bottom:auto;left:var(--ui-left);transform:none;width:138px}body[data-touch=true] #prompt{bottom:calc(var(--ui-bottom) + 224px)}}
 @media(max-height:480px){.menu-inner{padding:12px 18px}.menu-inner h1{margin-bottom:5px}.menu-inner label{min-height:36px}body[data-touch=true] #stick,body[data-touch=true] #aim-pad{bottom:calc(var(--ui-bottom) + 8px)}body[data-touch=true] #touch button{bottom:calc(var(--ui-bottom) + 108px)}body[data-touch=true] #charging{top:90px;bottom:auto;left:var(--ui-left);transform:none;width:138px}body[data-touch=true] #prompt{bottom:calc(var(--ui-bottom) + 158px)}}
 @media(prefers-reduced-motion:reduce){.meter i,#message{transition:none}}
+
+/* Corner HUD: terrain reference, future character tools, active water slot. */
+#minimap{position:fixed;left:var(--ui-left);bottom:var(--ui-bottom);width:184px;height:132px;border:1px solid var(--ui-line);box-shadow:0 2px 8px #0005;pointer-events:none;background:#253d32}
+#minimap canvas{display:block;width:100%;height:100%}.map-north{position:absolute;top:4px;left:8px;color:#ede8ca;font-size:10px;text-shadow:0 1px 2px #000}
+#utility-rail{position:fixed;right:var(--ui-right);top:58px;display:grid;gap:6px}
+#utility-rail button,#skill-reserve button{display:grid;place-items:center;background:var(--ui-ink);border:1px solid var(--ui-line);border-radius:2px;cursor:default}
+#utility-rail button{width:36px;height:36px}#utility-rail svg{width:19px;height:19px;color:#d8cba6}
+#utility-rail button:hover,#skill-reserve button:hover{border-color:var(--ui-gold)}
+#spell,#spell:has(#major-spell[hidden]){left:auto;right:calc(var(--ui-right) + 150px);bottom:var(--ui-bottom);transform:none;width:96px;height:54px;grid-template-columns:96px}
+.spell-current{width:96px;grid-template-columns:20px minmax(0,1fr);gap:5px;padding:7px}#ready{width:100%}
+#skill-reserve{position:fixed;right:var(--ui-right);bottom:var(--ui-bottom);display:grid;grid-template-columns:repeat(3,44px);gap:6px;height:54px}
+#skill-reserve button{width:44px;height:54px}#skill-reserve svg{width:20px;height:20px;color:#c2b894;opacity:.48}
+#charging{left:auto;right:var(--ui-right);transform:none;width:246px;bottom:calc(var(--ui-bottom) + 62px)}
+body[data-paused=true] #minimap,body[data-paused=true] #utility-rail,body[data-paused=true] #skill-reserve{visibility:hidden}
+body[data-touch=true] #minimap{bottom:calc(var(--ui-bottom) + 195px)}
+@media(max-width:600px){#minimap{width:104px;height:76px}#spell,#spell:has(#major-spell[hidden]){right:calc(var(--ui-right) + 114px);width:80px;grid-template-columns:80px}.spell-current{width:80px}#skill-reserve{grid-template-columns:repeat(3,32px)}#skill-reserve button{width:32px}#skill-reserve svg{width:17px;height:17px}#charging{width:194px}#utility-rail{top:52px}#utility-rail button{width:32px;height:32px}body[data-touch=true] #minimap{bottom:calc(var(--ui-bottom) + 200px)}}
+@media(max-height:480px){#minimap{width:104px;height:76px}body[data-touch=true] #minimap{bottom:calc(var(--ui-bottom) + 128px)}#utility-rail{top:50px;gap:4px}#utility-rail button{width:28px;height:28px}#utility-rail svg{width:16px;height:16px}}
+.loading-inner{width:min(300px,76%);text-align:center}.loading-inner small{font-size:11px;color:#9bb6ac}.loading-inner h1{font-family:"Yu Mincho","SimSun",serif;font-size:32px;margin:14px 0 6px;color:#eee5c9}.loading-inner p{font-size:12px;color:#d4c799;margin:0 0 30px}.loading-track{height:4px;background:#53675c;overflow:hidden;border-radius:1px}.loading-track i{display:block;width:0;height:100%;background:#d8cda9;transition:width .15s}#loading-percent{display:block;margin-top:10px;font-size:11px;font-variant-numeric:tabular-nums;color:#b7c7bd}
+
+/* UI13: real transparent Meowa atlas surfaces, rasterized once per host size. */
+:root{--ui-ink:#202423e8;--ui-bottom:max(12px,env(safe-area-inset-bottom));--ui-left:max(12px,env(safe-area-inset-left));--ui-right:max(12px,env(safe-area-inset-right))}
+html,body{color:#f0f1eb;background:#202423;font-family:"Yu Gothic","Microsoft YaHei",sans-serif;letter-spacing:0}
+button,select{border:0;border-radius:0;background-color:var(--ui-ink);min-width:44px;min-height:44px}
+.meowa-surface{background-image:var(--meowa-surface);background-repeat:no-repeat;background-size:100% 100%;border:0!important;box-shadow:none}
+button{transition:filter .12s;touch-action:manipulation}
+button:hover:not(:disabled):not([aria-disabled=true]){filter:brightness(1.18)}
+button:active:not(:disabled):not([aria-disabled=true]),button[aria-pressed=true]{filter:brightness(1.3);box-shadow:inset 0 -3px #82e1db}
+button:disabled,button[aria-disabled=true]{cursor:not-allowed;color:#abb3ae}
+button[aria-disabled=true] .meowa-icon{opacity:.62;filter:saturate(.5)}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #c8f7e4;outline-offset:2px}
+.meowa-icon{display:block;width:26px;height:26px;flex:none;background-image:var(--meowa-sprite);background-repeat:no-repeat;background-size:contain;background-position:center;pointer-events:none}
+.portrait-water-label{display:none}
+#hud{top:max(12px,env(safe-area-inset-top));left:var(--ui-left);right:var(--ui-right);grid-template-columns:160px minmax(0,1fr) 44px;gap:10px}
+.vitals{display:grid;grid-template-columns:minmax(0,1fr) 56px;grid-template-rows:16px 10px 10px;gap:5px 4px;align-items:center;align-content:start;width:160px;height:66px;padding:9px 12px;background-color:var(--ui-ink);border:0}
+.vitals strong{grid-column:1;grid-row:1;min-width:0;max-width:100%;font-size:12px}.vitals span{grid-column:2;grid-row:1;float:none;font-size:10px;text-align:right;white-space:nowrap}
+.vitals>.meter{grid-column:1 / -1;margin-top:0}
+.meter{position:relative;height:10px;margin-top:5px;padding:3px;background-color:#181e1b;overflow:hidden;border:0}
+.meter i{height:4px;max-width:100%;background:var(--meowa-sprite) center/100% 100% no-repeat;transition:width .12s}
+#hp{filter:hue-rotate(135deg) saturate(.8)}
+.place{width:min(280px,100%);max-height:66px;padding:9px 12px;border:0;background-color:var(--ui-ink);overflow:auto;text-align:left}
+.place span{font-size:12px;line-height:1.45}.place small{font-size:11px;line-height:1.5;margin:2px 0 0}
+#hud #menu{width:44px;height:44px;margin:0;border:0;border-radius:0;background-color:var(--ui-ink)}
+#utility-rail{right:var(--ui-right);top:64px;gap:6px}
+#utility-rail button{width:44px;height:44px;border-radius:0;background-color:var(--ui-ink)}
+#minimap{left:var(--ui-left);bottom:var(--ui-bottom);width:184px;height:132px;padding:8px;border:0;box-shadow:none;background-color:var(--ui-ink)}
+#minimap canvas{width:100%;height:100%}.map-north{top:10px;left:14px}
+#skill-dock{position:fixed;right:var(--ui-right);bottom:var(--ui-bottom);display:flex;align-items:stretch;gap:4px;width:244px;height:64px;padding:6px;background-color:var(--ui-ink)}
+#skill-dock:has(#major-spell:not([hidden])){width:min(308px,calc(100vw - 24px))}
+#spell,#spell:has(#major-spell[hidden]),body[data-touch=true] #spell{position:static;display:contents;transform:none;left:auto;right:auto;bottom:auto;width:auto;height:auto}
+.spell-current,#water-cast{display:grid;grid-template-columns:22px minmax(0,1fr);grid-template-rows:1fr 4px;align-items:center;align-content:center;gap:2px 4px;flex:1;min-width:44px;width:auto;height:auto;padding:5px 6px;border:0;background-color:#192622;text-align:left}
+#water-cast .meowa-icon{width:22px;height:26px;grid-row:1 / 3}
+#spell-name{font-size:11px;line-height:1.3;white-space:normal;overflow:visible;overflow-wrap:anywhere;text-overflow:clip}
+#ready{display:block;grid-column:2;max-width:100%;height:4px;background:var(--meowa-sprite) center/100% 100% no-repeat}
+#major-spell{width:60px;min-width:60px;height:auto;display:grid;justify-items:center;gap:1px;padding:4px;border:0;background-color:#292820}
+#major-spell svg{width:16px;height:16px}#major-spell [data-label]{font-size:11px;line-height:1.1;text-align:center;overflow-wrap:anywhere}
+#skill-reserve{position:static;display:flex;gap:4px;right:auto;bottom:auto;height:auto}
+#skill-reserve button{width:44px;min-width:44px;height:auto;display:flex;flex-direction:column;justify-content:center;gap:1px;background-color:var(--ui-ink);border:0;border-radius:0;padding:3px}
+#skill-reserve .meowa-icon{width:23px;height:23px}.reserve-label{font-size:10px;line-height:1.2;white-space:nowrap}
+#charging,body[data-touch=true] #charging{top:auto;bottom:calc(var(--ui-bottom) + 72px);left:auto;right:var(--ui-right);transform:none;width:244px;padding:7px 10px;color:#dde8e0;background-color:var(--ui-ink)}
+#charging>div{height:10px;margin-top:4px;padding:3px;background-color:#181e1b}
+#charging-progress{display:block;height:4px;background:var(--meowa-sprite) center/100% 100% no-repeat}
+#prompt,body[data-touch=true] #prompt{left:12px;right:12px;bottom:calc(var(--ui-bottom) + 148px);width:auto}
+#prompt button{min-height:44px;padding:10px 16px;background-color:var(--ui-ink);border:0;font-size:12px;max-width:min(340px,100%)}
+#message{top:96px;font-size:12px;line-height:1.5;background-color:var(--ui-ink)}
+#overlay{z-index:30;padding:12px;background:#101713b8}
+.menu-inner{width:min(360px,100%);max-height:calc(100dvh - 24px);padding:20px;background-color:#202423;overflow:auto;border:0}
+.menu-inner h1{font-family:"Yu Mincho","SimSun",serif;font-size:21px;margin:0 0 10px}
+.menu-inner>button{width:100%;min-height:44px;padding:8px 12px;margin:0 0 8px;background-color:#26302b;text-align:center;border:0}
+.menu-inner label{min-height:52px;gap:12px;font-size:12px;border-bottom:1px solid #ffffff18}
+.menu-inner label>span{max-width:52%;line-height:1.5;overflow-wrap:anywhere}
+select{max-width:140px;padding:8px;color:#f0f1eb;background-color:#242b26}
+input[type=range]{height:44px;width:130px;max-width:48%;accent-color:#97d8c5;background-color:transparent}
+input[type=checkbox]{appearance:none;width:44px;height:44px;margin:0;position:relative;flex:none;background-color:#242b26;cursor:pointer;border:0}
+input[type=checkbox]:checked:after{content:"";position:absolute;left:17px;top:11px;width:10px;height:17px;border:solid #a4e4cd;border-width:0 3px 3px 0;transform:rotate(45deg)}
+#dialog{z-index:25;inset:auto 12px 12px;max-height:calc(100dvh - 100px);padding:0;border:0;background:transparent;overflow:auto}
+#dialog>div{width:min(780px,100%);margin:auto;padding:18px 22px;background-color:#202423f7}
+#dialog small{font-size:12px;color:#d4c79a}#dialog p{font-size:14px;line-height:1.8;margin:8px 0;white-space:pre-wrap;overflow-wrap:anywhere}
+#dialog button{min-height:44px;padding:8px 14px;background-color:#26302b;color:#edf1e8}
+#touch{z-index:4}
+#stick,#aim-pad,body[data-touch=true] #stick,body[data-touch=true] #aim-pad{width:108px;height:108px;bottom:var(--ui-bottom);border:0;border-radius:0;background:var(--meowa-sprite) center/contain no-repeat}
+#stick{left:var(--ui-left)}#aim-pad{right:var(--ui-right);display:grid;place-items:center}
+#stick i{left:35px;top:35px;width:38px;height:38px;border:0;border-radius:0;background:var(--meowa-sprite) center/contain no-repeat}
+#aim-pad .meowa-icon{width:38px;height:38px;opacity:.8}
+#touch #dodge,#touch #touch-e,body[data-touch=true] #touch button{right:auto;bottom:calc(var(--ui-bottom) + 4px);width:60px;height:44px;border:0;background-color:var(--ui-ink);padding:4px;font-size:11px;gap:2px}
+#touch #dodge{left:calc(50% - 64px)}#touch #touch-e{left:calc(50% + 4px)}
+body[data-paused=true] :is(#hud,#skill-dock,#charging,#minimap,#utility-rail,#touch,#prompt){visibility:hidden}
+.loading-inner{width:min(340px,calc(100% - 32px));padding:24px;background-color:var(--ui-ink)}
+#loading{z-index:40;background:#202423}.loading-inner small{color:#aebdb2}.loading-inner h1{margin:10px 0;font-size:30px;color:#f0eddf}.loading-inner p{margin-bottom:24px;color:#cbc4a4}
+.loading-track{height:14px;padding:4px;background-color:#181e1b;border-radius:0}
+#loading-progress{height:6px;background:var(--meowa-sprite) center/100% 100% no-repeat}
+@media(max-width:600px),(max-height:480px){
+  #hud{grid-template-columns:112px minmax(0,1fr) 44px;gap:8px}.vitals{width:112px;height:64px;padding:8px 10px;grid-template-columns:minmax(0,1fr) 44px}.vitals strong{font-size:11px}.vitals span{font-size:9px}
+  .place{padding:8px;max-height:64px}.place span{font-size:11px}.place small{font-size:10px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  #hud[data-mode=combat] .place small{display:none}#hud #menu{width:44px;height:44px}
+  #minimap,body[data-touch=true] #minimap{width:104px;height:76px;bottom:calc(var(--ui-bottom) + 120px);padding:6px}
+  #skill-dock{bottom:calc(var(--ui-bottom) + 120px)}
+  #charging,body[data-touch=true] #charging{top:86px;bottom:auto;left:var(--ui-left);right:auto;width:112px;font-size:10px}
+  #prompt,body[data-touch=true] #prompt{bottom:calc(var(--ui-bottom) + 208px)}
+  #message{top:128px;max-width:calc(100% - 80px)}
+  #dialog>div{padding:14px}#dialog p{font-size:13px}
+}
+@media(max-width:600px){#skill-dock:has(#major-spell:not([hidden])){bottom:calc(var(--ui-bottom) + 212px)}}
+@media(max-width:350px){
+  #skill-dock{bottom:calc(var(--ui-bottom) + 212px)}
+  #touch #dodge{left:calc(50% - 22px);bottom:calc(var(--ui-bottom) + 48px);width:44px}
+  #touch #touch-e{left:calc(50% - 22px);bottom:var(--ui-bottom);width:44px}
+  #touch button svg{width:14px;height:14px}#touch button{flex-direction:column}
+  #prompt,body[data-touch=true] #prompt{bottom:calc(var(--ui-bottom) + 284px)}
+}
+@media(max-height:480px){
+  #hud{grid-template-columns:112px minmax(0,1fr) 44px}.place{max-height:44px}.place small{display:none}
+  #utility-rail{top:58px;gap:2px}#utility-rail button{width:44px;height:44px}
+  #skill-dock{height:56px}#charging,body[data-touch=true] #charging{top:84px}
+  .menu-inner{padding:14px 18px}.menu-inner label{min-height:44px}.menu-inner h1{font-size:18px;margin-bottom:6px}
+}
+@media(min-width:601px) and (min-height:481px){
+  body[data-touch=true] #minimap,body[data-touch=true] #skill-dock{bottom:calc(var(--ui-bottom) + 120px)}
+  body[data-touch=true] #charging{bottom:calc(var(--ui-bottom) + 192px)}
+  body[data-touch=true] #prompt{bottom:calc(var(--ui-bottom) + 272px)}
+}
+/* All viewports share the narrow skill column; touch hit bounds stay unchanged. */
+  #skill-reserve{display:contents}
+  #skill-reserve button{width:44px;height:44px;min-height:44px;flex:none;gap:0;padding:3px}
+  #skill-reserve .meowa-icon{width:26px;height:26px}
+  #skill-reserve .reserve-label,#water-cast #spell-name{display:none}
+  #water-cast{width:44px;height:44px;min-height:44px;flex:none;grid-template-columns:minmax(0,1fr);grid-template-rows:26px 10px 2px;gap:0;padding:3px;text-align:center}
+  #water-cast .meowa-icon{grid-column:1;grid-row:1;width:26px;height:26px;justify-self:center}
+  #water-cast .portrait-water-label{display:block;grid-column:1;grid-row:2;font-size:9px;line-height:10px;white-space:nowrap}
+  #water-cast #ready{grid-column:1;grid-row:3;height:2px;max-width:100%;justify-self:start}
+  #major-spell{position:absolute;left:-48px;bottom:4px;width:44px;min-width:44px;height:44px;min-height:44px;padding:3px}
+  #major-spell [data-label]{display:none}
+  #major-spell svg{width:26px;height:26px}
+#skill-dock,#skill-dock:has(#major-spell:not([hidden])){width:52px;height:196px;padding:4px;display:flex;flex-direction:column;align-items:center;gap:4px;right:var(--ui-right);bottom:var(--ui-bottom)}
+#minimap,body[data-touch=true] #minimap{width:112px;height:112px;left:var(--ui-left);top:calc(max(12px,env(safe-area-inset-top)) + 76px);bottom:auto;padding:0;border:0;box-shadow:none;background:var(--meowa-sprite) center/contain no-repeat}
+#minimap canvas{position:absolute;left:8px;top:8px;width:calc(100% - 16px);height:calc(100% - 16px);border-radius:50%;clip-path:circle(50%);aspect-ratio:1;object-fit:cover}
+#minimap .map-north{z-index:1;top:12px;left:50%;transform:translateX(-50%)}
+#charging,body[data-touch=true] #charging{left:calc(var(--ui-left) + 124px);right:auto;top:88px;bottom:auto;transform:none;width:144px}
+@media(max-width:600px),(max-height:480px){
+  #minimap,body[data-touch=true] #minimap{width:104px;height:104px}
+  #skill-dock,#skill-dock:has(#major-spell:not([hidden])){bottom:calc(var(--ui-bottom) + 120px);right:calc(var(--ui-right) + 56px)}
+  #charging,body[data-touch=true] #charging{left:calc(var(--ui-left) + 116px);top:88px}
+}
+@media(max-width:600px) and (aspect-ratio < 1/1){
+  #skill-dock,#skill-dock:has(#major-spell:not([hidden])){right:var(--ui-right)}
+  #utility-rail{top:64px;gap:6px}
+}
+@media(min-width:601px) and (min-height:481px){
+  body[data-touch=true] #skill-dock,body[data-touch=true] #skill-dock:has(#major-spell:not([hidden])){right:calc(var(--ui-right) + 120px);bottom:var(--ui-bottom)}
+}
+@media(prefers-reduced-motion:reduce){button,.meter i,#message,#loading-progress{transition:none}}
