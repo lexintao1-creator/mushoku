@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="description" content="非官方同人项目"><title>无职转生：初行之章</title><link rel="stylesheet" href="play.css"></head>
+<body>
+<main id="game" aria-label="游戏场景"></main>
+<div id="loading" role="status">初行之章…</div>
+<header id="hud" data-qa="hud"><div class="vitals"><strong id="name">鲁迪</strong><span id="hp-text"></span><div class="meter"><i id="hp"></i></div><div class="meter mana"><i id="mp"></i></div></div><div class="place"><span id="area"></span><small id="objective"></small></div><button id="menu" type="button" aria-label="菜单" title="菜单"><i data-lucide="menu" aria-hidden="true"></i></button></header>
+<div id="prompt" hidden><button id="interact" type="button"></button></div><div id="message" role="status"></div>
+<div id="spell" data-qa="spell-dock"><button id="water-cast" type="button" class="spell-current" aria-label="水术蓄力" title="塑形并保持" aria-pressed="false" data-qa="water-cast"><i data-lucide="droplet" aria-hidden="true"></i><span id="spell-name">水弹</span><i id="ready"></i></button><button id="major-spell" type="button" hidden disabled aria-pressed="false" aria-label="豪雷" title="豪雷" data-label-zh="豪雷" data-label-ja="豪雷積層雲" data-qa="major-spell"><i data-lucide="cloud-lightning" aria-hidden="true"></i><span data-label>豪雷</span></button></div>
+<div id="charging" hidden><span id="charging-label">塑形</span><div><i id="charging-progress"></i></div></div>
+<section id="overlay" hidden><div class="menu-inner"><h1 id="menu-title">旅途暂歇</h1><button id="resume">返回旅途</button><label><span id="language-label">语言</span><select id="language"><option value="zh">中文</option><option value="ja">日本語</option></select></label><label><span id="volume-label">音量</span><input id="volume" type="range" min="0" max="1" step=".05" value=".35"></label><label><span id="touch-label">触控</span><input id="touch-toggle" type="checkbox"></label><label><span id="light-label">照明</span><input id="light-toggle" type="checkbox" checked></label>
+<label><span id="chant-label">原创咏唱演出</span><input id="chant-toggle" type="checkbox"></label>
+</div></section>
+<section id="dialog" hidden><div><small id="speaker"></small><p id="line"></p><button id="dialog-close">继续旅途</button></div></section>
+<div id="touch" hidden><div id="stick" aria-label="移动"><i></i></div><div id="aim-pad" aria-label="拖曳瞄准并施法"><i data-lucide="droplet" aria-hidden="true"></i></div><button id="dodge"><i data-lucide="rotate-ccw" aria-hidden="true"></i><span data-label>闪避</span></button><button id="touch-e"><i data-lucide="hand" aria-hidden="true"></i><span data-label>交互</span></button></div>
+<script src="../assets/lucide.min.js"></script><script src="../assets/phaser.min.js"></script><script type="module" src="play.mjs"></script>
+</body></html>
