@@ -5,6 +5,7 @@ The default entry now opens the Rudeus-led 2D rebuild. The earlier prototype not
 - Charge retains the ordinary water ball until the blue arrays appear at 1.8 seconds. Arrays complete before the cone forms; full charge is reached at 12 seconds and never fires automatically.
 - Wind uses animated, depth-separated procedural streamlines rather than the rejected wind atlases. The outer orbit is larger, fainter and slower than the inner orbit, with offset phases; full charge retains circulation alongside the rearward field. Its reverse circulation is a magical visual rule, not a claim of computational fluid dynamics.
 - Airborne arrays reveal in staff-to-cone order: red, blue, gold. Each actual first reveal triggers one separate original resonance sound. Ground-array and water-cone colors are unchanged.
+- Array reveal audio retains the earlier deep resonance at the player's request; the experimental hybrid and A/C listening candidates are not included.
 - Continuous original wind synthesis begins only when the water cone forms at six seconds, replacing the short charge/hold audio loops. Full charge sustains until release or cancellation; existing release and impact sounds are retained.
 - Directional cast/release sheets, a circular upper-left minimap, a vertical skill column, both touch pads, and asset-backed loading/interface presentation are integrated.
 - Rendering work and diagnostics are bounded; pause cancels charge and wind, and viewport resizing re-centers the camera on the player.
