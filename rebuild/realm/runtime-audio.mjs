@@ -1,6 +1,6 @@
 export const AUDIO_FILES = Object.freeze(Object.fromEntries(Object.entries({
   charge: 'pressure-charge.mp3', release: 'water-release.mp3', impact: 'water-impact.mp3',
-  chargedRelease: 'sonic-release.mp3', chargedImpact: 'explosion-impact.mp3', chant: 'water-chant.mp3',
+  chargedRelease: 'sonic-release.mp3', chargedImpact: 'explosion-impact.mp3', chant: 'water-chant.mp3', hold: 'pressure-hold.mp3',
 }).map(([kind, file]) => [kind, new URL(`./assets/${file}`, import.meta.url).href])));
 export const MAX_VOICES = 6;
 
@@ -11,7 +11,7 @@ const defaultContext = () => {
 const ignorePromise = value => { Promise.resolve(value).catch(() => {}); };
 const clampVolume = value => Math.max(0, Math.min(1, value));
 
-// Owns one context and three decoded buffers. Main calls stopCharge() on cancel/pause;
+// Owns one context and declared decoded buffers. Main calls stopCharge() on cancel/pause;
 // release stops charge automatically. Missing/unready sounds are dropped, never queued.
 export class RuntimeAudio {
   #contextFactory; #fetcher; #gestureTarget; #gesture;
@@ -93,6 +93,7 @@ export class RuntimeAudio {
     voice.source.onended = null;
     try { voice.source.stop(); } catch { /* A voice may already have ended. */ }
     try { voice.source.disconnect(); } catch { /* Disposal remains idempotent. */ }
+    try { voice.gain?.disconnect(); } catch {}
   }
 
   stopCharge() {
@@ -105,7 +106,7 @@ export class RuntimeAudio {
   setChargePressure(progress) {
     if (!Number.isFinite(progress) || !this.#charge?.source.playbackRate) return false;
     // The authored crescendo spans the full twelve-second charge, not a short loop.
-    const rate = this.#buffers.get('charge').duration / 12;
+    const rate = this.#charge.kind === 'hold' ? 1 : this.#buffers.get('charge').duration / 12;
     const param = this.#charge.source.playbackRate;
     if (param.setTargetAtTime) param.setTargetAtTime(rate, this.#context.currentTime, 0.08);
     else param.value = rate;
@@ -117,7 +118,7 @@ export class RuntimeAudio {
     if (!Object.hasOwn(AUDIO_FILES, kind)) return false;
     if (kind === 'release' || kind === 'chargedRelease') this.stopCharge();
     if (!this.unlocked || !this.#buffers.has(kind)) return false;
-    if (kind === 'charge' && this.#charge) return true;
+    if ((kind === 'charge' || kind === 'hold') && this.#charge) return true;
     if (kind === 'chant' && this.#chant) return true;
     // Preserve the one sustained charge voice when impact effects fill the pool.
     if (this.#voices.size >= MAX_VOICES) this.#stop([...this.#voices].find(v => v !== this.#charge));
@@ -126,13 +127,23 @@ export class RuntimeAudio {
       const source = this.#context.createBufferSource();
       voice = { kind, source };
       this.#voices.add(voice);
-      if (kind === 'charge') this.#charge = voice;
+      if (kind === 'charge' || kind === 'hold') this.#charge = voice;
       if (kind === 'chant') this.#chant = voice;
       source.buffer = this.#buffers.get(kind);
-      source.loop = false;
+      source.loop = kind === 'hold';
       if (kind === 'charge' && source.playbackRate && Number.isFinite(source.buffer.duration)) source.playbackRate.value = source.buffer.duration / 12;
-      source.connect(this.#master);
-      source.onended = () => this.#stop(voice);
+      if (kind === 'hold') {
+        voice.gain = this.#context.createGain();
+        voice.gain.gain.value = 0;
+        voice.gain.gain.setTargetAtTime?.(0.12, this.#context.currentTime, 0.3);
+        if (!voice.gain.gain.setTargetAtTime) voice.gain.gain.value = .12;
+        source.connect(voice.gain);voice.gain.connect(this.#master);
+      } else source.connect(this.#master);
+      source.onended = () => {
+        const sustain = kind === 'charge' && this.#charge === voice;
+        this.#stop(voice);
+        if (sustain) this.play('hold');
+      };
       source.start(0);
       return true;
     } catch {
